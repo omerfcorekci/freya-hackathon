@@ -265,6 +265,25 @@ Full source in `docs/`. The most critical points:
 24. API: `POST /api/v2/workflow` (validate with dryRun=true); `PUT` **does not publish**; `freya.save_workflow` does create/update + publish + the AGENT_LLM fix. `POST /api/v2/chat/message` runs one turn at a time with no simulation (seconds), ideal for smoke tests. `GET /api/v2/call/{id}` → `messages` with `route_evaluated`, `function_call_start/complete`, `variable_table`.
 25. Troubleshooting: `error code: 1010` → User-Agent missing; "Workspace plan limit reached" → update in place; score never moves → not published; `unknown product_id` → the model invented an id, give it from `get_account` or fill it in code; `customer-ended-call` → the agent was slow (median >10 s warning); if the model was busy the score is not ours, rerun.
 
+### Verified on the platform while building (10 October, evening)
+
+- A deterministic transition that tests a variable extracted in the same turn does **not** fire in that turn
+  (`route_evaluated` shows the value in the table but `matched=False`); it fires one turn later on the stale value.
+  A code node entered through an `always` transition **does** see the fresh extraction. So every customer turn goes
+  conversation node → `always` → code node → `route` variable → next node. Transitions never test extracted variables.
+- On the chat route (`POST /api/v2/chat/message`) the very first customer message of a call is not routed at all
+  (`branches=[]`); the dialogue model answers it. From the second message on, routing is normal. Chat scenarios therefore
+  start with a throwaway "Hello?". Simulations do not show this: the agent speaks first, then the customer.
+- Tool defaults such as `{{customer_id}}` are resolved against `test_variables` at call start on the chat route, so a
+  `test_variables.customer_id` overrides the real one. The builder sends no `test_variables`.
+- `on_enter: {"type": "tts", "text": "{{say}}"}` resolves a variable written by the code node entered in the same turn.
+  Every agent sentence is composed in code and spoken this way; the dialogue model is never relied on (it was seen
+  emitting reasoning text and a made-up tool call on entry).
+- A failed HTTP call (`function_call_error`) runs no response mapping; `rec_ok` stays empty, so the retry is a second
+  api node reached by the `always` fallback. Each `create_promise` attempt clears `rec_ok`/`rec_ok_retry` first.
+- The chat route returned 503 for every call while a simulation was running in the workspace.
+- A 10-case simulation of the compiled Brief A agent took 146 s; the kit's example run took 63 s for the base agent.
+
 ## 12. Strategy: what the builder should be
 
 ### The core of the problem
