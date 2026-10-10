@@ -106,9 +106,12 @@ SPEC_SCHEMA = _o({
     "bands": _a(_o({
         "name": _s("Band name as the brief calls it."),
         "days_late_min": _i(""), "days_late_max": _i(""),
-        "deadline_kind": _s("", ["business_days_after_today", "calendar_days_after_today", "end_of_month", "fixed_date", "custom"]),
+        "deadline_kind": _s("business_days_after_today = the N-th business day after today; calendar_days_after_today = today plus N calendar days, "
+                            "moved to the next business day when that day is not one (use this for 'N days' or 'N calendar days' rules); "
+                            "end_of_month = the last business day of the month; fixed_date; custom only when none of these fits.",
+                            ["business_days_after_today", "calendar_days_after_today", "end_of_month", "fixed_date", "custom"]),
         "deadline_n": _i("N for the *_after_today kinds, else 0."),
-        "deadline_text": _s("The ISO date for fixed_date, or the brief's words for custom."),
+        "deadline_text": _s("The ISO date for fixed_date, or the brief's exact words for custom."),
         "persuasion_attempts": _i("How many persuasion attempts this band allows."),
     }), "Lateness bands with their deadline and attempt count, in order."),
     "date_rules": _o({
@@ -271,9 +274,20 @@ def _empty(v):
     return v is None or v == "" or v == [] or v == {}
 
 
+def _normalise_bands(spec, done):
+    """A custom deadline whose text says 'N business days' or 'N days' becomes the matching kind."""
+    for i, b in enumerate(spec.get("bands") or []):
+        if b.get("deadline_kind") == "custom" and not b.get("deadline_n"):
+            m = re.search(r"(\d+)\s*(?:(\w+)\s+)?(business|working|calendar)?\s*days?", str(b.get("deadline_text", "")), flags=re.I)
+            if m:
+                kind = "business_days_after_today" if (m.group(3) or "").lower() in ("business", "working") else "calendar_days_after_today"
+                b["deadline_kind"] = kind; b["deadline_n"] = int(m.group(1)); done.append(f"bands[{i}].deadline_kind<-{kind}:{m.group(1)}")
+
+
 def apply_defaults(spec):
     """Fill structural defaults. Returns (spec, [paths that were defaulted])."""
     spec = copy.deepcopy(spec); done = []
+    _normalise_bands(spec, done)
     for path, val in STRUCTURAL_DEFAULTS.items():
         if _empty(get(spec, path)):
             put(spec, path, copy.deepcopy(val)); done.append(path)
