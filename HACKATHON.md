@@ -282,6 +282,9 @@ Full source in `docs/`. The most critical points:
 - A failed HTTP call (`function_call_error`) runs no response mapping; `rec_ok` stays empty, so the retry is a second
   api node reached by the `always` fallback. Each `create_promise` attempt clears `rec_ok`/`rec_ok_retry` first.
 - The chat route returned 503 for every call while a simulation was running in the workspace.
+- A simulation can stay `running` for ever after every call has ended (the judge's analysis never arrives and runs show
+  `inconclusive`); the kit's scorer then polls for ever. `POST /api/v2/simulations/{id}/cancel` ends it
+  (`builder/freya_ext.cancel_running_simulations`); `builder/run_cases_safe.py` runs the scorer under a watchdog.
 - A 10-case simulation of the compiled Brief A agent took 146 s; the kit's example run took 63 s for the base agent.
 
 ## 12. Strategy: what the builder should be
