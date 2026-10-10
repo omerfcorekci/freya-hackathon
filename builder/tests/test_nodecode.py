@@ -23,7 +23,7 @@ class Sim:
         self.vars = {"customer_id": "c_test", "first_name": "Dana", "last_name": "Reyes", "title": "Ms", "now": now, "products": products}
         self.run = self.ns["_run_node"]; self.promises = []; self.notes = []; self.log = []
     def node(self, mode):
-        self.run(mode, self.vars, self.cfg); r = self.vars.get("route"); self.log.append((mode, r, self.vars.get("neg_instruction", "")[:90])); return r
+        self.run(mode, self.vars, self.cfg); r = self.vars.get("route"); self.log.append((mode, r, self.vars.get("say", "")[:90])); return r
     def start(self):
         return self.node("product_facts")
     def say(self, stance, date="", amount="", product=""):
@@ -62,42 +62,42 @@ class BriefATests(unittest.TestCase):
 
     def test_pub01_full_today(self):
         s = self.sim([CC("4821", 420.0, 6, 126.0)]); self.assertEqual(s.start(), "negotiate")
-        self.assertIn("Can you make this payment today?", s.vars["neg_instruction"])
+        self.assertIn("Can you make this payment today?", s.vars["say"])
         self.assertEqual(s.say("agrees"), "confirm"); self.assertEqual(s.confirm("yes"), "close")
         self.assertEqual(s.close(), ("promise", None)); self.assertEqual(s.promises, [("p1", 420.0, "2026-10-14")])
-        self.assertIn("text message", s.vars["farewell_instruction"])
+        self.assertIn("text message", s.vars["say"])
 
     def test_pub04_after_deadline(self):
         s = self.sim([LOAN("p1", "car_loan", 1250.0, 14, 400.0)]); s.start()
-        self.assertEqual(s.say("proposes", date="6 November"), "negotiate"); self.assertIn("23 October", s.vars["neg_instruction"])
+        self.assertEqual(s.say("proposes", date="6 November"), "negotiate"); self.assertIn("23 October", s.vars["say"])
         self.assertEqual(s.say("agrees"), "confirm"); s.confirm(); self.assertEqual(s.close(), ("promise", None))
         self.assertEqual(s.promises, [("p1", 1250.0, "2026-10-23")])
 
     def test_pub05_hardship_declines(self):
         s = self.sim([LOAN("p1", "personal_loan", 780.0, 21, 260.0)]); s.start()
-        self.assertEqual(s.say("hardship"), "hardship"); self.assertIn("sorry", s.vars["hs_instruction"].lower())
+        self.assertEqual(s.say("hardship"), "hardship"); self.assertIn("sorry", s.vars["say"].lower())
         s.vars["hs_stance"] = "declines"; self.assertEqual(s.node("eval_hardship"), "close")
         self.assertEqual(s.close(), ("no_promise", "hardship")); self.assertEqual(s.promises, [])
 
     def test_pub06_too_much_then_friday(self):
         s = self.sim([CC("1903", 2125.1, 12, 637.5)]); s.start()
-        self.assertEqual(s.say("too_much"), "negotiate"); self.assertIn("637.50", s.vars["neg_instruction"]); self.assertIn("overdue", s.vars["neg_instruction"])
+        self.assertEqual(s.say("too_much"), "negotiate"); self.assertIn("637.50", s.vars["say"]); self.assertIn("overdue", s.vars["say"])
         self.assertEqual(s.say("proposes", date="this Friday"), "confirm"); s.confirm()
         self.assertEqual(s.close(), ("promise", None)); self.assertEqual(s.promises, [("p1", 637.5, "2026-10-16")])
 
     def test_pub07_vague_then_holiday(self):
         s = self.sim([LOAN("p1", "personal_loan", 540.0, 5, 180.0)]); s.start()
         self.assertEqual(s.say("refuses"), "negotiate")            # cannot pay today -> attempt 1 (16 Oct)
-        self.assertIn("16 October", s.vars["neg_instruction"])
-        self.assertEqual(s.say("vague", date="the week after next"), "negotiate"); self.assertIn("exact day", s.vars["neg_instruction"])
-        self.assertEqual(s.say("proposes", date="Monday the 26th"), "negotiate"); self.assertIn("27 October", s.vars["neg_instruction"])
+        self.assertIn("16 October", s.vars["say"])
+        self.assertEqual(s.say("vague", date="the week after next"), "negotiate"); self.assertIn("exact day", s.vars["say"])
+        self.assertEqual(s.say("proposes", date="Monday the 26th"), "negotiate"); self.assertIn("27 October", s.vars["say"])
         self.assertEqual(s.say("agrees"), "confirm"); s.confirm()
         self.assertEqual(s.promises, [("p1", 540.0, "2026-10-27")]); self.assertEqual(s.close(), ("promise", None))
 
     def test_pub08_paid(self):
         s = self.sim([CC("5512", 180.0, 5, 54.0)]); s.start()
         self.assertEqual(s.say("paid"), "close"); self.assertEqual(s.close(), ("paid", None)); self.assertEqual(s.promises, [])
-        self.assertIn("one business day", s.vars["farewell_instruction"])
+        self.assertIn("one business day", s.vars["say"])
 
     def test_pub09_plan(self):
         s = self.sim([LOAN("p1", "personal_loan", 2100.0, 28, 700.0)]); s.start()
@@ -106,14 +106,14 @@ class BriefATests(unittest.TestCase):
 
     def test_pub10_retry(self):
         s = self.sim([CC("7740", 365.0, 8, 109.5)]); s.start()
-        s.say("refuses"); self.assertIn("16 October", s.vars["neg_instruction"])
+        s.say("refuses"); self.assertIn("16 October", s.vars["say"])
         self.assertEqual(s.say("agrees"), "confirm"); self.assertEqual(s.confirm("yes", fail_first=1), "close")
         self.assertEqual(s.promises, [("p1", 365.0, "2026-10-16")]); self.assertEqual(s.close(), ("promise", None))
 
     def test_flat_refusals_late_band(self):
         s = self.sim([CC("1111", 500.0, 20, 150.0)]); s.start()
-        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("16 October", s.vars["neg_instruction"])
-        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("150", s.vars["neg_instruction"]); self.assertIn("23 October", s.vars["neg_instruction"])
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("16 October", s.vars["say"])
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("150", s.vars["say"]); self.assertIn("23 October", s.vars["say"])
         self.assertEqual(s.say("refuses"), "close"); self.assertEqual(s.close(), ("no_promise", "refused"))
 
     def test_flat_refusal_early_band(self):
@@ -129,11 +129,11 @@ class BriefATests(unittest.TestCase):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start(); s.say("agrees")
         s.vars["confirm_stance"] = "yes"; r = s.node("eval_confirm"); self.assertEqual(r, "record")
         s.vars["rec_ok"] = ""; s.vars["rec_ok_retry"] = ""; self.assertEqual(s.node("after_record"), "close")
-        self.assertEqual(s.close(), ("no_promise", "service_error")); self.assertIn("could not record", s.vars["farewell_instruction"])
+        self.assertEqual(s.close(), ("no_promise", "service_error")); self.assertIn("could not record", s.vars["say"])
 
     def test_below_floor_then_floor(self):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
-        self.assertEqual(s.say("proposes", date="tomorrow", amount="100"), "negotiate"); self.assertIn("150", s.vars["neg_instruction"])
+        self.assertEqual(s.say("proposes", date="tomorrow", amount="100"), "negotiate"); self.assertIn("150", s.vars["say"])
         self.assertEqual(s.say("agrees"), "confirm"); s.confirm(); self.assertEqual(s.promises, [("p1", 150.0, "2026-10-15")])
 
     def test_third_party_callback(self):
@@ -143,14 +143,52 @@ class BriefATests(unittest.TestCase):
         self.assertEqual(s.node("tp_eval"), "again"); s.vars.update({"tp_stance": "gives_time", "cb_date_text": "Sunday", "cb_time_text": "8 pm"})
         self.assertEqual(s.node("tp_eval"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_reached", "no_callback"))
 
+    def test_opening_routes(self):
+        s = self.sim([]); s.vars["ack"] = "customer"; self.assertEqual(s.node("opening_tally"), "identity")
+        s = self.sim([]); s.vars["ack"] = "third_party"; self.assertEqual(s.node("opening_tally"), "third_party")
+        s = self.sim([]); s.vars.update({"ack": "question", "q_kind": "robot"}); self.assertEqual(s.node("opening_tally"), "again")
+        self.assertIn("digital assistant", s.vars["say"]); self.assertIn("Am I speaking with", s.vars["say"])
+
     def test_opening_unclear_twice(self):
         s = self.sim([]); s.vars["ack"] = "unclear"; self.assertEqual(s.node("opening_tally"), "again")
         s.vars["ack"] = "unclear"; self.assertEqual(s.node("opening_tally"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_reached", "unclear"))
 
     def test_identity_declines_twice(self):
-        s = self.sim([]); s.node("identity_prep"); self.assertEqual(s.vars["id_next_field"], "date_of_birth")
-        s.vars["id_stance"] = "asks_what_about"; self.assertEqual(s.node("identity_tally"), "identity"); self.assertIn("protect", s.vars["id_instruction"])
-        s.vars["id_stance"] = "declines"; self.assertEqual(s.node("identity_tally"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_verified", "declined"))
+        s = self.sim([]); s.node("identity_prep"); self.assertEqual(s.vars["id_next_field"], "date_of_birth"); self.assertIn("date of birth", s.vars["say"])
+        s.vars["id_stance"] = "asks_what_about"; self.assertEqual(s.node("identity_eval"), "identity"); self.assertIn("protect", s.vars["say"])
+        s.vars["id_stance"] = "declines"; self.assertEqual(s.node("identity_eval"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_verified", "declined"))
+
+    def test_identity_happy_and_pieces(self):
+        s = self.sim([]); s.node("identity_prep")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "14 March"}); self.assertEqual(s.node("identity_eval"), "identity"); self.assertIn("go on", s.vars["say"].lower())
+        s.vars.update({"id_stance": "answering", "id_answer_text": "1988"}); self.assertEqual(s.node("identity_eval"), "verify"); self.assertEqual(s.vars["id_answer"], "1988-03-14")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "false", "vi_left": "3"}); self.assertEqual(s.node("identity_after"), "identity")
+        self.assertEqual(s.vars["id_next_field"], "phone_last4"); self.assertIn("last four digits", s.vars["say"])
+        s.vars.update({"id_stance": "answering", "id_answer_text": "forty-four"}); self.assertEqual(s.node("identity_eval"), "identity")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "seventy-one"}); self.assertEqual(s.node("identity_eval"), "verify"); self.assertEqual(s.vars["id_answer"], "4471")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "true", "vi_left": "3"}); self.assertEqual(s.node("identity_after"), "fetch"); self.assertEqual(s.vars["verified"], 1)
+
+    def test_identity_three_wrong(self):
+        s = self.sim([]); s.node("identity_prep")
+        for i, left in enumerate(("2", "1", "0")):
+            s.vars.update({"id_stance": "answering", "id_answer_text": "12 July 1991"}); self.assertEqual(s.node("identity_eval"), "verify")
+            s.vars.update({"vi_ok": "true", "vi_verified": "false", "vi_all": "false", "vi_left": left}); r = s.node("identity_after")
+        self.assertEqual(r, "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_verified", "failed")); self.assertIn("mobile app", s.vars["say"])
+
+    def test_identity_swapped_hint(self):
+        s = self.sim([]); s.node("identity_prep")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "03/14/1988"}); self.assertEqual(s.node("identity_eval"), "verify")
+        s.vars.update({"vi_ok": "true", "vi_verified": "false", "vi_all": "false", "vi_left": "3", "vi_hint": "day_month_swapped"}); self.assertEqual(s.node("identity_after"), "identity")
+        self.assertIn("month as a word", s.vars["say"]); self.assertEqual(s.vars["id_wrong"], 0)
+
+    def test_question_with_proposal(self):
+        s = self.sim([LOAN("p1", "car_loan", 1250.0, 14, 400.0)]); s.start()
+        s.vars["q_kind"] = "robot"; self.assertEqual(s.say("proposes", date="6 November"), "negotiate")
+        self.assertTrue(s.vars["say"].startswith("I am Freya Bank's digital assistant.")); self.assertIn("23 October", s.vars["say"])
+
+    def test_question_then_repeat(self):
+        s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
+        s.vars["q_kind"] = "robot"; self.assertEqual(s.say("question"), "negotiate"); self.assertIn("digital assistant", s.vars["say"]); self.assertIn("today?", s.vars["say"])
 
 
 class BriefBTests(unittest.TestCase):
@@ -162,7 +200,7 @@ class BriefBTests(unittest.TestCase):
 
     def test_pub11_three_one_date(self):
         s = self.sim([CC("2288", 220.0, 9, 66.0), LOAN("p2", "personal_loan", 640.0, 9, 213.0), LOAN("p3", "car_loan", 75.0, 3, 25.0)])
-        self.assertEqual(s.start(), "negotiate"); self.assertEqual(s.vars["neg_phase"], "all"); self.assertIn("all of them today", s.vars["neg_instruction"])
+        self.assertEqual(s.start(), "negotiate"); self.assertEqual(s.vars["neg_phase"], "all"); self.assertIn("all of them today", s.vars["say"])
         self.assertEqual(s.say("proposes", date="this Friday"), "confirm"); self.assertEqual(s.vars["readback_text"].count("16 October"), 3)
         s.confirm(); self.assertEqual(sorted(s.promises), [("p1", 220.0, "2026-10-16"), ("p2", 640.0, "2026-10-16"), ("p3", 75.0, "2026-10-16")])
         self.assertEqual(s.close(), ("promise", None)); self.assertEqual(s.notes, [])
@@ -170,8 +208,8 @@ class BriefBTests(unittest.TestCase):
     def test_pub12_one_promise_two_refused(self):
         s = self.sim([CC("9015", 510.0, 16, 153.0), LOAN("p2", "personal_loan", 1320.0, 16, 440.0), LOAN("p3", "car_loan", 140.0, 7, 46.0)]); s.start()
         self.assertEqual(s.say("proposes", date="tomorrow", product="credit card"), "negotiate")   # p1 agreed, now p2 attempt 1
-        self.assertEqual(s.vars["cur_k"], 2); self.assertIn("16 October", s.vars["neg_instruction"])
-        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("440", s.vars["neg_instruction"]); self.assertIn("23 October", s.vars["neg_instruction"])  # attempt 2 late band
+        self.assertEqual(s.vars["cur_k"], 2); self.assertIn("16 October", s.vars["say"])
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("440", s.vars["say"]); self.assertIn("23 October", s.vars["say"])  # attempt 2 late band
         self.assertEqual(s.say("refuses"), "negotiate"); self.assertEqual(s.vars["cur_k"], 3)   # p3 attempt 1
         self.assertEqual(s.say("refuses"), "confirm")                                             # p3 exhausted (early) -> confirm p1
         s.confirm(); self.assertEqual(s.promises, [("p1", 510.0, "2026-10-15")])

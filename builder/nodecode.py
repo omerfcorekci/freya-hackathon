@@ -265,7 +265,9 @@ def _words_to_digits(s):
 def _digit_words(s):
     return _words_to_digits(s)
 
-def _node_identity_eval(vars, CFG):
+def _node_identity_eval(vars, CFG): _with_question_reply(vars, CFG, _identity_eval_body)
+
+def _identity_eval_body(vars, CFG):
     st = str(_g(vars, "id_stance", "other")); vars["id_stance"] = "other"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
     text = str(_g(vars, "id_answer_text", "")); vars["id_answer_text"] = ""
@@ -302,6 +304,13 @@ def _node_identity_eval(vars, CFG):
 def _truthy(x): return str(x).strip().lower() == "true"
 
 def _node_identity_after(vars, CFG):
+    _identity_after_body(vars, CFG)
+    pend = str(_g(vars, "q_reply_pending", "")); vars["q_reply_pending"] = ""
+    if pend:
+        if str(_g(vars, "route", "")) == "fetch": vars["say_prefix"] = pend + " " + str(_g(vars, "say_prefix", ""))
+        else: vars["say"] = (pend + " " + str(_g(vars, "say", ""))).strip()
+
+def _identity_after_body(vars, CFG):
     field = str(_g(vars, "id_next_field", "")); q = _question(CFG, field)
     ask = "Could you please tell me " + _ask_for(q) + "?"
     ok = str(_g(vars, "vi_ok", "")); verified = _g(vars, "vi_verified", ""); allv = _g(vars, "vi_all", "")
@@ -360,7 +369,9 @@ def _cb_allowed_dates(today, CFG):
     if kind == "within_n_calendar_days": return [today + datetime.timedelta(days=i) for i in range(max(n, 1) + 1)]
     return out + [_next_business_day(today, cal)]
 
-def _node_tp_eval(vars, CFG):
+def _node_tp_eval(vars, CFG): _with_question_reply(vars, CFG, _tp_eval_body)
+
+def _tp_eval_body(vars, CFG):
     now = _today(vars, CFG); today = now.date(); cal = _cal(CFG)
     st = str(_g(vars, "tp_stance", "other")); vars["tp_stance"] = "other"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
@@ -601,7 +612,20 @@ def _validate_amount(vars, k, amt, CFG):
 def _settle(vars, k, date_iso, amount, CFG):
     _pset(vars, k, "agreed_date", date_iso); _pset(vars, k, "agreed_amount", amount); _pset(vars, k, "state", "agreed")
 
-def _node_eval(vars, CFG):
+def _with_question_reply(vars, CFG, body):
+    """A side question in the customer's message gets its standard reply in front of whatever the node says next."""
+    qk = str(_g(vars, "q_kind", "none"))
+    body(vars, CFG)
+    if qk != "none" and str(_g(vars, "route", "")) in ("negotiate", "confirm", "hardship", "again", "identity", "third_party"):
+        reply = _std_reply(vars, CFG, qk)
+        say = str(_g(vars, "say", ""))
+        if reply and reply.lower() not in say.lower(): vars["say"] = (reply + " " + say).strip()
+    elif qk != "none" and str(_g(vars, "route", "")) in ("verify", "fetch", "schedule"):
+        vars["q_reply_pending"] = _std_reply(vars, CFG, qk)
+
+def _node_eval(vars, CFG): _with_question_reply(vars, CFG, _eval_body)
+
+def _eval_body(vars, CFG):
     now = _today(vars, CFG); today = now.date(); cal = _cal(CFG)
     k = _gi(vars, "cur_k", 1); n = _n_products(vars)
     stance = str(_g(vars, "stance", "none")); dtext = str(_g(vars, "prop_date_text", "")); atext = str(_g(vars, "prop_amount_text", ""))
@@ -736,7 +760,9 @@ def _transfer(vars, CFG, queue, outcome_obj):
     _say(vars, "I will connect you to the " + team + " now. " + _goodbye())
 
 
-def _node_eval_hardship(vars, CFG):
+def _node_eval_hardship(vars, CFG): _with_question_reply(vars, CFG, _eval_hardship_body)
+
+def _eval_hardship_body(vars, CFG):
     now = _today(vars, CFG); n = _n_products(vars)
     st = str(_g(vars, "hs_stance", "none")); vars["hs_stance"] = "none"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
@@ -765,7 +791,9 @@ def _node_eval_human(vars, CFG):
 
 # ---- confirmation and recording -------------------------------------------------------------------------------------------
 
-def _node_eval_confirm(vars, CFG):
+def _node_eval_confirm(vars, CFG): _with_question_reply(vars, CFG, _eval_confirm_body)
+
+def _eval_confirm_body(vars, CFG):
     now = _today(vars, CFG); n = _n_products(vars)
     st = str(_g(vars, "confirm_stance", "none")); vars["confirm_stance"] = "none"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
