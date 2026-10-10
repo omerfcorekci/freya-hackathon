@@ -16,9 +16,18 @@ def _nows(spec):
 
 
 def run(spec, cfg, trace):
-    cal = cfg["calendar"]; ok = 0; total = 0; fails = []
-    products = [{"product_id": "p1", "type": "credit_card", "card_last4": "0000", "past_due": 300.0, "days_late": 5, "minimum_payment": 90.0},
-                {"product_id": "p2", "type": "personal_loan", "past_due": 900.0, "days_late": 20, "instalment_amount": 300.0}]
+    cal = cfg["calendar"]; ok = 0; total = 0; fails = []; roles = cfg["roles"]
+    types = list(((spec.get("debt_statement") or {}).get("product_wording") or {}).keys()) or ["product"]
+    floor_fields = (spec.get("amount_rules") or {}).get("floor_by_type") or {}
+    bands = spec.get("bands") or []
+    late_a = int(bands[0].get("days_late_min", 1) or 1) + 1 if bands else 5
+    late_b = int(bands[-1].get("days_late_min", 20) or 20) + 1 if bands else 20
+    def product(i, typ, due, late):
+        p = {roles["id"]: f"p{i}", roles["type"]: typ, roles["past_due"]: due, roles["days_late"]: late, "card_last4": "0000"}
+        ff = floor_fields.get(typ)
+        if ff: p[ff] = round(due * 0.3, 2)
+        return p
+    products = [product(1, types[0], 300.0, late_a), product(2, types[-1], 900.0, late_b)]
     for now in _nows(spec):
         total += 1
         try:
@@ -42,12 +51,14 @@ def run(spec, cfg, trace):
     trace.test("offline/code_nodes", "PASS" if ok == total else "FAIL", f"{ok}/{total} call dates" + (" | " + "; ".join(fails)[:400] if fails else ""))
     # spoken security answers are normalised in code: check the formats this brief uses
     ns = datefacts.lib_namespace(); exec(codegen.NODE_MIN, ns)
-    samples = {"date_ymd": [("the twenty-eighth of April nineteen ninety-three", "1993-04-28"), ("14/03/1988", "1988-03-14"), ("March 14, 1988", "1988-03-14")],
-               "digits": [("four four seven one", "4471"), ("forty-four seventy-one", "4471"), ("4471", "4471")],
-               "year": [("two thousand and twelve", "2012"), ("1998", "1998")], "alnum": [("sw1a 1aa", "SW1A1AA")]}
+    words = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
     bad = []
     for q in (spec.get("identity") or {}).get("questions") or []:
-        fmt = q.get("answer_format") or "text"; qq = dict(q); qq.setdefault("digits_len", 4)
+        fmt = q.get("answer_format") or "text"; qq = dict(q)
+        n = int(qq.get("digits_len") or 4); digits = "".join(str((i % 9) + 1) for i in range(n))
+        samples = {"date_ymd": [("the twenty-eighth of April nineteen ninety-three", "1993-04-28"), ("14/03/1988", "1988-03-14"), ("March 14, 1988", "1988-03-14")],
+                   "digits": [(" ".join(words[int(d) - 1] for d in digits), digits), (digits, digits), (digits[: n // 2] + " " + digits[n // 2:], digits)],
+                   "year": [("two thousand and twelve", "2012"), ("1998", "1998")], "alnum": [("sw1a 1aa", "SW1A1AA")]}
         for text, want in samples.get(fmt, []):
             got, complete = ns["_norm_answer"](text, qq)
             if not complete or got != want: bad.append(f"{fmt}: {text!r} -> {got!r}")
