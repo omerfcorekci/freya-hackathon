@@ -360,22 +360,25 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Open questions / needs
+## 14. Status (Sunday 00:00 UTC, 03:00 TR)
 
-- [ ] Freya API key (in the start email) and the `FREYA_BANK_TEAM_KEY` choice → `env.sh`
-- [ ] `ANTHROPIC_API_KEY` (or a Claude login) for the builder; model: `claude-opus-5-5` by default, `claude-sonnet-5-5` worth trying for speed
-- [ ] Is the YC registration done? Team name? The email address the submission form goes to (the kit email)?
-- [ ] GitHub repo (the organisers will clone it → public or access granted)
-- [ ] Will practice cases / mock sessions come with the hidden briefs? (`/v1/practice/sessions` wants a case id.) Ask in the support channel.
-- [ ] Team of two, one workspace; one simulation at a time → coordinate the test queue
+Done tonight:
+- Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25, ~55 s), compiles,
+  lints, dry-runs, saves in place, exports, self-tests, writes the trace. Architecture in `builder/README.md`.
+- Brief A practice cases: **10/10** (version 5); Brief B: **3/3**. Median agent turn 2–5 s (the dialogue model is not used).
+- Rehearsal briefs (another bank, business customers, 3 identity questions, 4 bands, Saturday business day, other
+  outcome names, raw mail + policy + memo + code list): spec extraction correct including the memo's overrides;
+  compiled workflows accepted by the platform's dry run.
+- `builder/batch_tests.py` runs A and B with `--reps 3` and the speaking styles sequentially under a watchdog.
 
-## 15. Next steps
+Open:
+- [ ] Review `results/batch-reps3.log` (A and B three times each) and the style runs; fix what fails 3/3.
+- [ ] The chat route (`/api/v2/chat/message`) returned 503/504 for long stretches; the chat self-test marks that
+      inconclusive. For hidden briefs without practice cases the live test is only this route.
+- [ ] YC registration and team name; the submission email address from the kit email; GitHub repo access for the organisers.
+- [ ] Dry run from a fresh clone (SUBMISSION.md), then freeze by 15:30 UTC.
 
-1. Prepare the env, upload the base agent, see the pipeline work with `run_cases --brief A` (expect ~2/13).
-2. Run the example builder on Brief A as is: baseline score and build time. Look at the trace format.
-3. `builder/build.py` harness: one command, time budget, trace, export, slot-based save.
-4. `builder/lib/`: tools_from_openapi, date_facts, skeleton, lint. Rewrite the skills.
-5. Brief A → `--reps 3` and `--style` variants; then A+B (target 13/13).
-6. Generalisation rehearsal: run the builder on 2 briefs we write with different formats/values (validity + chat smoke test only).
-7. Dry run: time the Sunday scenario end to end.
-8. Sunday 17:00 UTC: hidden-1, hidden-2; export; commit; form before 20:00.
+## 15. Sunday
+
+Procedure and checklist: `SUBMISSION.md`. Allowed after 17:00 UTC: crash fixes only, reviewed by both, one commit each.
+Leak check before the final commit: `python3 builder/leak_check.py <freeze_commit> briefs/hidden-1.md briefs/hidden-2.md`.
