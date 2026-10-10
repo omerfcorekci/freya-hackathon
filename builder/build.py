@@ -66,6 +66,7 @@ def main(argv=None):
         tr.spec(f"{'ok' if not problems else 'with problems'} required_missing={missing} defaulted={len(defaulted)} problems={len(problems)}")
         for p in problems: tr.warn("spec: " + p)
         open(os.path.join(out_dir, "spec.json"), "w").write(dumps(spec))
+        open(os.path.join(ROOT, "submission", a.slot + ".spec.json"), "w").write(dumps(spec))   # what the model read, next to what we submit
         # 2. compile
         cfg = build_cfg(spec, api)
         wf = skeleton.compile_workflow(spec, api, cfg)

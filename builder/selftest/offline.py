@@ -40,4 +40,16 @@ def run(spec, cfg, trace):
         except Exception as e:
             fails.append(f"now={now}: {e}")
     trace.test("offline/code_nodes", "PASS" if ok == total else "FAIL", f"{ok}/{total} call dates" + (" | " + "; ".join(fails)[:400] if fails else ""))
-    return ok == total
+    # spoken security answers are normalised in code: check the formats this brief uses
+    ns = datefacts.lib_namespace(); exec(codegen.NODE_MIN, ns)
+    samples = {"date_ymd": [("the twenty-eighth of April nineteen ninety-three", "1993-04-28"), ("14/03/1988", "1988-03-14"), ("March 14, 1988", "1988-03-14")],
+               "digits": [("four four seven one", "4471"), ("forty-four seventy-one", "4471"), ("4471", "4471")],
+               "year": [("two thousand and twelve", "2012"), ("1998", "1998")], "alnum": [("sw1a 1aa", "SW1A1AA")]}
+    bad = []
+    for q in (spec.get("identity") or {}).get("questions") or []:
+        fmt = q.get("answer_format") or "text"; qq = dict(q); qq.setdefault("digits_len", 4)
+        for text, want in samples.get(fmt, []):
+            got, complete = ns["_norm_answer"](text, qq)
+            if not complete or got != want: bad.append(f"{fmt}: {text!r} -> {got!r}")
+    trace.test("offline/answer_formats", "PASS" if not bad else "FAIL", "; ".join(bad)[:300] if bad else "spoken answers normalise")
+    return ok == total and not bad
