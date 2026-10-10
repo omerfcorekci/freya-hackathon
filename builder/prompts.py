@@ -131,9 +131,9 @@ STANCE = ("What the customer's MOST RECENT message says about paying: 'agrees' =
           "Small talk about the day, traffic, work, a wedding or a trip changes nothing: classify the part that answers the question.")
 PROP_DATE = ("If the customer's most recent message names a day, date or period on which THEY WILL PAY, copy it in their own words (this Friday, the 26th, "
              "6 November, next week, when my salary comes). A date mentioned about something else (a wedding, a trip, a birthday, when they called the bank) "
-             "is NOT a payment date: leave it empty. Empty if none.")
+             "is NOT a payment date: leave it empty. If they correct themselves, copy the whole phrase including the correction. Empty if none.")
 PROP_AMOUNT = ("If the customer's most recent message names an amount of money THEY WILL PAY, copy it (200, four hundred, 637.50, half). An amount about "
-               "something else (a bill, a salary figure, a price) is not a payment: leave it empty. Empty if none.")
+               "something else (a bill, a salary figure, a price) is not a payment: leave it empty. If they correct themselves, copy the whole phrase including the correction. Empty if none.")
 PROP_PRODUCT = "If the customer's most recent message says WHICH product the date or amount is for (the credit card, the car loan), copy those words. Empty if none."
 
 HS_STANCE = ("From the customer's MOST RECENT message: 'accepts' = yes to being connected with the support team; 'declines' = no to the transfer; "

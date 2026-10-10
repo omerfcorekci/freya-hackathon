@@ -69,6 +69,19 @@ def _say(vars, text, ask=None):
     vars["say"] = text
     vars["last_ask"] = " ".join(str(ask if ask is not None else text).split())
 
+_CORRECTION = re.compile(r"\b(sorry|i mean|i meant|actually|no wait|wait no|wait,|no,|correction|scratch that|make that|rather|not that|let me correct|i mean to say)\b[:,]?", re.I)
+
+def _corrected(text):
+    """'the 21st, sorry, I mean the 20th' -> 'the 20th': customers correct themselves; the last part is what they mean."""
+    t = str(text or "")
+    parts = _CORRECTION.split(t)
+    # split keeps the markers as separate items; take the last non-marker, non-empty part
+    out = t
+    for part in reversed(parts):
+        if part and not _CORRECTION.fullmatch(part.strip()) and part.strip(" ,:"):
+            out = part; break
+    return out.strip(" ,:.")
+
 def _std_reply(vars, CFG, kind):
     kind = str(kind or "none")
     if kind == "robot": return _sentence(_s(CFG, "opening.robot_reply", "I am a digital assistant."))
@@ -270,7 +283,7 @@ def _node_identity_eval(vars, CFG): _with_question_reply(vars, CFG, _identity_ev
 def _identity_eval_body(vars, CFG):
     st = str(_g(vars, "id_stance", "other")); vars["id_stance"] = "other"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
-    text = str(_g(vars, "id_answer_text", "")); vars["id_answer_text"] = ""
+    text = _corrected(_g(vars, "id_answer_text", "")); vars["id_answer_text"] = ""
     field = str(_g(vars, "id_next_field", "")); q = _question(CFG, field)
     ask = "Could you please tell me " + _ask_for(q) + "?"
     if st == "wants_human":
@@ -375,7 +388,7 @@ def _tp_eval_body(vars, CFG):
     now = _today(vars, CFG); today = now.date(); cal = _cal(CFG)
     st = str(_g(vars, "tp_stance", "other")); vars["tp_stance"] = "other"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
-    dtext = str(_g(vars, "cb_date_text", "")); ttext = str(_g(vars, "cb_time_text", ""))
+    dtext = _corrected(_g(vars, "cb_date_text", "")); ttext = _corrected(_g(vars, "cb_time_text", ""))
     vars["cb_date_text"] = ""; vars["cb_time_text"] = ""
     cb = _s(CFG, "third_party.callback") or dict()
     name = _customer_name(vars, CFG)
@@ -628,8 +641,12 @@ def _node_eval(vars, CFG): _with_question_reply(vars, CFG, _eval_body)
 def _eval_body(vars, CFG):
     now = _today(vars, CFG); today = now.date(); cal = _cal(CFG)
     k = _gi(vars, "cur_k", 1); n = _n_products(vars)
-    stance = str(_g(vars, "stance", "none")); dtext = str(_g(vars, "prop_date_text", "")); atext = str(_g(vars, "prop_amount_text", ""))
+    stance = str(_g(vars, "stance", "none")); dtext = _corrected(_g(vars, "prop_date_text", "")); atext = _corrected(_g(vars, "prop_amount_text", ""))
     ptext = str(_g(vars, "prop_product_text", "")); qk = str(_g(vars, "q_kind", "none"))
+    # 'pieces': an amount said in two parts ('six hundred thirty-seven' then 'fifty') - a bare small number right after an amount is its cents
+    prev_amt = str(_g(vars, "last_amount_text", "")); vars["last_amount_text"] = atext
+    if atext and prev_amt and re.fullmatch(r"\s*(\d{1,2}|[a-z-]+)\s*", atext) and _parse_amount(atext) is not None and _parse_amount(atext) < 100 and _parse_amount(prev_amt) is not None and float(_parse_amount(prev_amt)).is_integer():
+        atext = ("%d" % int(_parse_amount(prev_amt))) + "." + ("%02d" % int(_parse_amount(atext))); vars["last_amount_text"] = atext
     vars["stance"] = "none"; vars["prop_date_text"] = ""; vars["prop_amount_text"] = ""; vars["prop_product_text"] = ""; vars["q_kind"] = "none"
     _pset(vars, k, "turns", _gi(vars, _pk(k, "turns"), 0) + 1)
     d_status, d_val = _resolve_date_expr(dtext, now, cal) if dtext else ("none", "")
@@ -797,7 +814,7 @@ def _eval_confirm_body(vars, CFG):
     now = _today(vars, CFG); n = _n_products(vars)
     st = str(_g(vars, "confirm_stance", "none")); vars["confirm_stance"] = "none"
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
-    dtext = str(_g(vars, "prop_date_text", "")); atext = str(_g(vars, "prop_amount_text", "")); ptext = str(_g(vars, "prop_product_text", ""))
+    dtext = _corrected(_g(vars, "prop_date_text", "")); atext = _corrected(_g(vars, "prop_amount_text", "")); ptext = str(_g(vars, "prop_product_text", ""))
     vars["prop_date_text"] = ""; vars["prop_amount_text"] = ""; vars["prop_product_text"] = ""
     last_ask = str(_g(vars, "last_ask", ""))
     if st == "yes":

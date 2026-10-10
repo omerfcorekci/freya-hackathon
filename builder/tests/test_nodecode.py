@@ -186,6 +186,13 @@ class BriefATests(unittest.TestCase):
         s.vars["q_kind"] = "robot"; self.assertEqual(s.say("proposes", date="6 November"), "negotiate")
         self.assertTrue(s.vars["say"].startswith("I am Freya Bank's digital assistant.")); self.assertIn("23 October", s.vars["say"])
 
+    def test_self_correction_and_pieces(self):
+        s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
+        self.assertEqual(s.say("proposes", date="the 21st, sorry, I mean the 20th"), "confirm"); self.assertIn("20 October", s.vars["readback_text"])
+        s = self.sim([CC("1111", 637.5, 3, 200.0)]); s.start()
+        self.assertEqual(s.say("proposes", amount="six hundred thirty-seven"), "negotiate")      # 637 accepted as amount, asks for the day
+        self.assertEqual(s.say("proposes", amount="fifty", date="tomorrow"), "confirm"); self.assertIn("637.50", s.vars["readback_text"])
+
     def test_question_then_repeat(self):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
         s.vars["q_kind"] = "robot"; self.assertEqual(s.say("question"), "negotiate"); self.assertIn("digital assistant", s.vars["say"]); self.assertIn("today?", s.vars["say"])
