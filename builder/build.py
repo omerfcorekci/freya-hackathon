@@ -70,7 +70,7 @@ def main(argv=None):
         cfg = build_cfg(spec, api)
         wf = skeleton.compile_workflow(spec, api, cfg)
         n_nodes, n_tools = skeleton.counts(wf)
-        errors, warnings = lintmod.lint(wf, known_vars=set(wf.get("test_variables") or {}))
+        errors, warnings = lintmod.lint(wf, known_vars=skeleton.call_variables(spec, cfg))
         tr.compile(n_nodes, n_tools, errors, len(warnings))
         for w in warnings[:30]: tr.warn("lint: " + w)
         for e in errors: tr.error("lint: " + e)
@@ -92,7 +92,7 @@ def main(argv=None):
             # 4. self-tests
             from builder.selftest import offline as st_offline, chat as st_chat, cases as st_cases
             st_offline.run(spec, cfg, tr)
-            if not a.no_chat: st_chat.run(spec, cfg, api, saved["workflow_id"], tr, budget)
+            if not a.no_chat: st_chat.run(spec, cfg, api, saved["workflow_id"], tr, budget, cases_path=st_cases.detect(a)[0])
             if not a.no_sim: st_cases.run(a, spec, saved["agent_id"], tr, budget)
     except Exception as e:
         status = "error"; tr.error(f"{type(e).__name__}: {str(e)[:800]}")
