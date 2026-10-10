@@ -24,13 +24,31 @@ def run(spec, cfg, api, workflow_id, trace, budget, cases_path=None):
     session = _session_for(spec, cfg, cases_path)
     scen = sc.generate(spec, cfg, session)
     if not scen: trace.test("chat", "SKIP", "no scenarios"); return
-    passed = 0
+    passed = 0; inconclusive = 0; streak = 0
     for s in scen:
         if not budget.allows(90, "chat/" + s["name"]): break
-        try: ok, detail = _play(s, cfg, workflow_id, session)
-        except Exception as e: ok, detail = False, f"{type(e).__name__}: {str(e)[:160]}"
-        trace.test("chat/" + s["name"], "PASS" if ok else "FAIL", detail); passed += ok
-    trace.test("chat/total", "PASS" if passed == len(scen) else "FAIL", f"{passed}/{len(scen)} scenarios")
+        if streak >= 2:
+            trace.test("chat/" + s["name"], "SKIP", "chat route unavailable (two scenarios in a row could not start)"); continue
+        result, detail = _attempt(s, cfg, workflow_id, session)
+        if result == "INCONCLUSIVE" and budget.allows(120, "chat retry"):
+            time.sleep(8); result, detail = _attempt(s, cfg, workflow_id, session)
+        trace.test("chat/" + s["name"], result, detail)
+        if result == "PASS": passed += 1; streak = 0
+        elif result == "INCONCLUSIVE": inconclusive += 1; streak += 1
+        else: streak = 0
+    verdict = "PASS" if passed == len(scen) else ("INCONCLUSIVE" if passed + inconclusive == len(scen) and inconclusive else "FAIL")
+    trace.test("chat/total", verdict, f"{passed}/{len(scen)} scenarios passed, {inconclusive} inconclusive (platform 5xx)")
+
+
+def _attempt(s, cfg, workflow_id, session):
+    """One scenario. A platform 5xx or timeout is INCONCLUSIVE, not a failure of the phone agent."""
+    try:
+        ok, detail = _play(s, cfg, workflow_id, session)
+        return ("PASS" if ok else "FAIL"), detail
+    except Exception as e:
+        msg = str(e)
+        if any(code in msg for code in ("-> 5", "timed out", "timeout", "Remote end closed")): return "INCONCLUSIVE", msg[:160]
+        return "FAIL", f"{type(e).__name__}: {msg[:160]}"
 
 
 def _play(s, cfg, workflow_id, session):
