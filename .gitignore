@@ -1,2 +1,22 @@
+# local config / secrets
 .mcp.json
-.DS_STORE
+env.sh
+.env
+.env.*
+
+# kit runtime state (workspace-specific, recreated on every machine)
+.freya-agents.json
+.personas.json
+results/
+out/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
