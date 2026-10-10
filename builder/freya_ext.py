@@ -60,3 +60,25 @@ def ledger(customer_id):
         return http("/v1/practice/ledger/" + customer_id)
     except Exception as e:
         return {"error": str(e)[:200]}
+
+
+def latest_simulation():
+    r = freya.api("GET", "/api/v2/simulations", workspaceId=freya.workspace_id(), limit=1)
+    sims = r.get("simulations") or r.get("items") or r
+    return (sims or [None])[0] if isinstance(sims, list) else None
+
+
+def cancel_simulation(sim_id):
+    """POST /api/v2/simulations/{id}/cancel (found on 10 October): ends a simulation whose analysis hangs in 'running'."""
+    return freya.api("POST", f"/api/v2/simulations/{sim_id}/cancel", {})
+
+
+def cancel_running_simulations():
+    """Cancel whatever simulation the workspace still reports as running, so a new one can start."""
+    out = []
+    r = freya.api("GET", "/api/v2/simulations", workspaceId=freya.workspace_id(), limit=5)
+    for s in (r.get("simulations") or r.get("items") or r) or []:
+        if isinstance(s, dict) and s.get("status") == "running":
+            try: cancel_simulation(s["id"]); out.append(s["id"])
+            except Exception: pass
+    return out
