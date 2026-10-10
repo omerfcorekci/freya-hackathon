@@ -28,6 +28,11 @@ def system_prompt(spec):
     return "\n".join(lines)
 
 
+def fallback_task(spec):
+    """Used only if the engine ever invokes the dialogue model in a node (it should not: every line is a fixed tts)."""
+    return "Say exactly this and nothing else: {{say}}\nDo not call any tool."
+
+
 def opening_task(spec):
     return ("You have just said the opening sentence and asked who is on the line. Wait for the answer. "
             "If you must speak again: do not say why you are calling; answer a question with the standard replies; then ask again exactly: "
@@ -90,6 +95,13 @@ def farewell_task(spec):
 
 # ---- extraction descriptions (the extraction model reads these) ---------------------------------------------------
 
+Q_KIND = ("If the customer's MOST RECENT message asks a question, which kind: 'robot' = whether they are talking to a robot, an AI or a machine; "
+          "'scam' = whether this call is a scam or genuine, or how to verify it; 'what_about' = what the call is about, why you are calling, which account or product; "
+          "'other' = any other question; 'none' = no question in the message.")
+ID_ANSWER = ("The security answer the customer gave in their MOST RECENT message, copied exactly as said: a date of birth (14 March 1988, the fourteenth of March "
+             "nineteen eighty-eight, 14/03/1988), digits (4471, four four seven one, forty-four seventy-one), a year, a postcode, a code or a number. "
+             "Also copy a partial answer (half a number, a day and month without the year). Empty if the message contains no attempt at an answer.")
+
 ACK = ("From the person's MOST RECENT message only: 'customer' if they confirm they are the person asked for (yes, that's me, speaking, "
        "or they say that name); 'third_party' if someone else answered or the customer is not available; 'wrong_number' if they say "
        "this number does not belong to that person; 'deceased' if they say the person has died; 'question' if they ask something "
@@ -99,7 +111,7 @@ ACK = ("From the person's MOST RECENT message only: 'customer' if they confirm t
 ID_STANCE = ("From the customer's MOST RECENT message only: 'answering' if they give a date, digits, a year, a code or any attempt at the "
              "security answer; 'declines' if they refuse to give security answers; 'asks_what_about' if instead of answering they ask what "
              "the call is about or why you need it; 'dont_want_to_talk' if they say they do not want to talk or to stop calling; "
-             "'wants_human' if they ask for a real person or an agent; 'question' for another question (robot? scam?); 'other' otherwise.")
+             "'wants_human' if they ask for a real person or an agent; 'question' for another question (robot? scam?) with no answer; 'other' otherwise.")
 
 TP_STANCE = ("From the person's MOST RECENT message: 'gives_time' if they name a day and/or a time when the customer can be reached; "
              "'wrong_number' if the number does not belong to the customer; 'deceased' if the customer has died; 'refuses' if they will "
@@ -115,9 +127,13 @@ STANCE = ("What the customer's MOST RECENT message says about paying: 'agrees' =
           "'dispute' = says the debt is not theirs, they never had the product, or it was closed or paid off; "
           "'plan' = asks for a payment plan, lower instalments or to restructure; 'human' = asks for a real person; "
           "'question' = asks a question and gives no answer (is this a scam? which account?); 'dont_want_to_talk' = says they do not want to talk now; "
-          "'other' = none of these. Pick exactly one; a message with a date or amount is 'proposes' even if it also contains a no.")
-PROP_DATE = "If the customer's most recent message names a day, date or period for paying, copy it in their own words (this Friday, the 26th, 6 November, next week). Empty if none."
-PROP_AMOUNT = "If the customer's most recent message names an amount of money, copy it (200, four hundred, 637.50, half). Empty if none."
+          "'other' = none of these. Pick exactly one; a message with a PAYMENT date or amount is 'proposes' even if it also contains a no. "
+          "Small talk about the day, traffic, work, a wedding or a trip changes nothing: classify the part that answers the question.")
+PROP_DATE = ("If the customer's most recent message names a day, date or period on which THEY WILL PAY, copy it in their own words (this Friday, the 26th, "
+             "6 November, next week, when my salary comes). A date mentioned about something else (a wedding, a trip, a birthday, when they called the bank) "
+             "is NOT a payment date: leave it empty. Empty if none.")
+PROP_AMOUNT = ("If the customer's most recent message names an amount of money THEY WILL PAY, copy it (200, four hundred, 637.50, half). An amount about "
+               "something else (a bill, a salary figure, a price) is not a payment: leave it empty. Empty if none.")
 PROP_PRODUCT = "If the customer's most recent message says WHICH product the date or amount is for (the credit card, the car loan), copy those words. Empty if none."
 
 HS_STANCE = ("From the customer's MOST RECENT message: 'accepts' = yes to being connected with the support team; 'declines' = no to the transfer; "
