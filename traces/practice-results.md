@@ -54,4 +54,5 @@ sorry, the 20th"); re-asks that repeat only the question so an offer is never ma
   the platform was compared with the local compile (identical apart from the platform's default fields) and with the
   freeze candidate (opening node, system prompt and every non-code part byte-identical; only the code strings changed,
   and no code node ran in the stalled calls). Each of PUB-11, PUB-12 and PUB-13 passed on the new code with the expected
-  tool path once its first turn went through.
+  tool path once its first turn went through. A fourth run at 13:38–13:42 UTC, once the platform had recovered (median
+  slowest turn 3 s): Brief B **3/3** in one simulation. Plain-style result on the frozen code: A 10/10, B 3/3.
