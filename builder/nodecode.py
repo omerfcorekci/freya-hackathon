@@ -712,6 +712,7 @@ def _eval_body(vars, CFG):
     if re.fullmatch(r"\s*(?:the\s+)?([0-9]{1,2})(?:st|nd|rd|th)?\.?\s*", dtext or ""):
         dtext = "the " + re.sub(r"\D", "", dtext) + "th"
     d_status, d_val = _resolve_date_expr(dtext, now, cal) if dtext else ("none", "")
+    if _means_all(atext) and not _means_all(ptext): ptext = atext     # 'all three' landed in the amount field: it names the products
     # 'pieces': a date said in two parts ('30' then 'October'); keep the unresolved piece and retry with the next one
     prev_piece = str(_g(vars, "date_piece", ""))
     if dtext and d_status != "date" and prev_piece:
@@ -722,7 +723,7 @@ def _eval_body(vars, CFG):
             combo = dtext + " " + prev_piece; st2, val2 = _resolve_date_expr(combo, now, cal)
             if st2 == "date": d_status, d_val, dtext = st2, val2, combo
     vars["date_piece"] = dtext if (dtext and d_status != "date") else ""
-    amt = _parse_amount(atext) if atext else None
+    amt = _money_amount(atext)
     phase = str(_g(vars, "neg_phase", "product"))
     last_ask = str(_g(vars, "last_ask", _first_ask(CFG)))
     if stance in ("refuses", "other", "none", "vague", "agrees", "question") and (d_status != "none" or amt is not None):
@@ -852,6 +853,17 @@ def _eval_body(vars, CFG):
     _pset(vars, k, "state", "refused")
     vars["say_prefix"] = "I understand, I will not insist. "
     vars["route"] = _advance(vars, CFG, now)
+
+def _money_amount(text):
+    """The amount of money in an extracted amount text, or None when the text is a count of products ('all three', 'both')
+    or no real amount."""
+    t = str(text or "").strip().lower()
+    if not t: return None
+    if re.search(r"\b(all|both|each|every|the two|the three|of them)\b", t) and not re.search(r"\d", t): return None
+    v = _parse_amount(t)
+    if v is None: return None
+    if v <= 3 and not re.search(r"\d", t): return None
+    return v
 
 def _means_all(text):
     return bool(re.search(r"\b(both|all|everything|all of them|the two|the three|each of them|every one)\b", str(text or "").lower()))
