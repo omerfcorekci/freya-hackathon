@@ -28,13 +28,13 @@ def run_one(agent, letter, reps, style, only):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--reps", type=int, default=3); ap.add_argument("--styles", default="")
-    ap.add_argument("--briefs", default="A,B"); ap.add_argument("--only", default=None); a = ap.parse_args()
+    ap.add_argument("--briefs", default="A,B"); ap.add_argument("--only", default=None); ap.add_argument("--no-plain", action="store_true"); a = ap.parse_args()
     agents = json.load(open(os.path.join(ROOT, ".freya-agents.json")))
     slot = {"A": "brief-a", "B": "brief-b"}
     rows = []
     for letter in a.briefs.split(","):
         agent = agents[slot[letter]]["agent_id"]
-        for style in [None] + [s for s in a.styles.split(",") if s]:
+        for style in ([] if a.no_plain else [None]) + [s for s in a.styles.split(",") if s]:
             r = run_one(agent, letter, a.reps, style, a.only); rows.append(r)
             print(f"{letter} reps={a.reps} style={r['style']:<10} {r['passed']}/{r['total']} failed={r['failed']} {r['seconds']}s", flush=True)
     print("\nsummary"); print(f"{'brief':<6}{'style':<12}{'passed':<10}failed")
