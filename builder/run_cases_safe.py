@@ -22,7 +22,13 @@ def main(argv):
     cmd = [sys.executable, os.path.join(ROOT, "tools", "run_cases.py"), *argv]
     t0 = time.time()
     try:
-        p = subprocess.run(cmd, timeout=limit)
+        # the platform answers 503/504 for minutes at a time (seen 11 October): retry a run that could not start
+        for attempt in range(1, 6):
+            p = subprocess.run(cmd, timeout=max(60, limit - (time.time() - t0)), capture_output=True, text=True)
+            sys.stdout.write(p.stdout); sys.stderr.write(p.stderr); sys.stdout.flush()
+            transient = ("-> 503" in p.stderr or "-> 504" in p.stderr or "temporarily unavailable" in p.stderr) and "passed" not in p.stdout
+            if p.returncode == 0 or not transient or time.time() - t0 > limit - 120: return p.returncode
+            print(f"\nplatform error (attempt {attempt}); waiting 60 s and retrying the run", flush=True); time.sleep(60)
         return p.returncode
     except subprocess.TimeoutExpired:
         print(f"\nrun_cases exceeded {limit}s; cancelling the simulation", flush=True)
