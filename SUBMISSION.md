@@ -51,6 +51,22 @@ Needs Python 3.10+, `pip install claude-agent-sdk`, a Claude login or `ANTHROPIC
 }
 ```
 
+## The final case (Sunday 17:00–20:00 UTC)
+
+The final is a case folder, not a brief plus a tool API. The builder takes the folder and the address of our mock:
+
+```
+python3 mock/build_data.py case/test-environment/test-customers.json   # answers of the test customers into the Worker
+(cd mock && npx wrangler deploy)                                        # the mock on Cloudflare Workers
+python3 mock/check.py https://<worker>.workers.dev                      # every test customer answers as the pack says
+python3 builder/build.py case https://<worker>.workers.dev              # the phone agent, slot "final"
+```
+
+The run writes `submission/final.workflow.json`, `traces/final.log` (our trace) and `traces/final.session.jsonl`
+(every message of the Claude Code run that designed the agent). `submission.json` at the repo root names the commit,
+the run command, the two files and the mock address. The three files go by e-mail to the organisers before 20:00 UTC.
+The mock stays deployed until the results are out.
+
 ## Sunday checklist (UTC)
 
 - 16:45 `source env.sh`; `python3 -m unittest discover builder/tests`; `python3 builder/build.py builder/rehearsal/clean.md builder/rehearsal/clean.openapi.json --offline --spec submission/rehearsal-clean.spec.json` (or without `--spec`, one model call) runs clean; platform reachable; support channel open.

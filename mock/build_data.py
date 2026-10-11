@@ -8,13 +8,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # service name -> (method, path, request fields that select the answer). Provisional until the bank's integration
 # document fixes paths and field names; `routes.js` reads the same table from data.json.
 SERVICES = {
-    "cards.list":            ("POST", "/cards/list",            ["customerNo"]),
-    "cards.balance":         ("POST", "/cards/balance",         ["customerNo", "cardNumber"]),
-    "statement.week.get":    ("POST", "/statement/week/get",    ["customerNo", "cardNumber"]),
-    "statement.week.decide": ("POST", "/statement/week/decide", ["customerNo", "cardNumber", "newStatementWeek"]),
-    "statement.week.change": ("POST", "/statement/week/change", ["customerNo", "cardNumber", "newStatementWeek"]),
-    "contact.email.get":     ("POST", "/contact/email/get",     ["customerNo"]),
-    "statement.pdf.send":    ("POST", "/statement/pdf/send",    ["customerNo", "cardNumber"]),
+    "cards.list":            ("POST", "/voice/v1/cards.list",            ["customerNo"]),
+    "cards.balance":         ("POST", "/voice/v1/cards.balance",         ["customerNo", "cardNumber"]),
+    "statement.week.get":    ("POST", "/voice/v1/statement.week.get",    ["customerNo", "cardNumber"]),
+    "statement.week.decide": ("POST", "/voice/v1/statement.week.decide", ["customerNo", "cardNumber", "newStatementWeek"]),
+    "statement.week.change": ("POST", "/voice/v1/statement.week.change", ["customerNo", "cardNumber", "newStatementWeek"]),
+    "contact.email.get":     ("POST", "/voice/v1/contact.email.get",     ["customerNo"]),
+    "statement.pdf.send":    ("POST", "/voice/v1/statement.pdf.send",    ["customerNo", "cardNumber"]),
 }
 
 
@@ -39,8 +39,8 @@ def main(src):
             table = {}
             for key, a in answers(tree, fields):
                 table["|".join(key)] = {"http": a.get("http", 200), "delay": a.get("gecikmeSaniye") or 0, "body": a.get("response", a.get("yanit"))}
-                body = {"customerNo": no}
-                for f, v in zip(fields, key): body[f] = v
+                body = {"data": {"customerNo": no}, "call": {"callId": "check", "channel": "IVR"}}
+                for f, v in zip(fields, key): body["data"][f] = v
                 expected.append({"name": f"{no} {svc} {'/'.join(key)}", "method": SERVICES[svc][0], "path": SERVICES[svc][1], "body": body,
                                  "status": a.get("http", 200), "response": a.get("response", a.get("yanit"))})
             entry["services"][svc] = table
