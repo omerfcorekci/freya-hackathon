@@ -21,6 +21,9 @@ def run_one(agent, letter, reps, style, only):
     os.makedirs(os.path.join(ROOT, "results", "batch"), exist_ok=True)
     with open(os.path.join(ROOT, "results", "batch", f"{letter}-{style or 'plain'}-reps{reps}-{time.strftime('%H%M%S')}.log"), "w") as f: f.write(out + "\n" + p.stderr)
     m = re.search(r"(\d+) / (\d+) passed", out)
+    if not m:
+        err = (p.stderr or out).strip().splitlines()[-1:] or ["no output"]
+        print(f"   {letter} {style or 'plain'}: no result; last line: {err[0][:160]}", flush=True)
     failed = re.findall(r"^FAIL (PUB-\d+)", out, flags=re.M)
     return {"brief": letter, "reps": reps, "style": style or "-", "passed": m.group(1) if m else "?", "total": m.group(2) if m else "?",
             "failed": sorted(set(failed)), "seconds": round(time.time() - t0), "tail": out.strip().splitlines()[-1:] if out.strip() else [p.stderr[-200:]]}

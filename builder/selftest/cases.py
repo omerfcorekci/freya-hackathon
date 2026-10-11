@@ -26,12 +26,17 @@ def run(a, spec, agent_id, trace, budget):
     cmd = [sys.executable, os.path.join(ROOT, "tools", "run_cases.py"), agent_id, "--brief", letter, "--cases", cases, "--out", out]
     trace.info("running: " + " ".join(os.path.relpath(c, ROOT) if os.path.isabs(c) else c for c in cmd))
     from builder import freya_ext as fx
-    stale = fx.cancel_running_simulations()
-    if stale: trace.warn(f"cancelled stale simulations before the run: {stale}")
+    try:
+        stale = fx.cancel_running_simulations()
+        if stale: trace.warn(f"cancelled stale simulations before the run: {stale}")
+    except Exception as e:
+        trace.warn(f"could not check for stale simulations: {str(e)[:120]}")
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=max(120, min(720, budget.remaining() - 30)))
     except subprocess.TimeoutExpired:
-        trace.test("cases", "FAIL", f"timed out; cancelled {fx.cancel_running_simulations()}"); return
+        try: cancelled = fx.cancel_running_simulations()
+        except Exception as e: cancelled = f"cancel failed: {str(e)[:80]}"
+        trace.test("cases", "FAIL", f"timed out; cancelled {cancelled}"); return
     for line in p.stdout.splitlines():
         if line.startswith(("PASS", "FAIL")): trace.test("cases/" + line.split()[1], line.split()[0], line.split("|", 1)[-1].strip()[:160])
         elif line.strip().startswith("-"): trace.info("   " + line.strip()[:200])

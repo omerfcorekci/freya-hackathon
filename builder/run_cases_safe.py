@@ -14,8 +14,11 @@ def main(argv):
     if "--limit-seconds" in argv:
         i = argv.index("--limit-seconds"); limit = int(argv[i + 1]); argv = argv[:i] + argv[i + 2:]
     from builder import freya_ext as fx
-    cancelled = fx.cancel_running_simulations()
-    if cancelled: print("cancelled stale simulations:", cancelled, flush=True)
+    try:
+        cancelled = fx.cancel_running_simulations()
+        if cancelled: print("cancelled stale simulations:", cancelled, flush=True)
+    except Exception as e:
+        print("warning: could not check for stale simulations (platform error):", str(e)[:120], flush=True)
     cmd = [sys.executable, os.path.join(ROOT, "tools", "run_cases.py"), *argv]
     t0 = time.time()
     try:
@@ -23,7 +26,8 @@ def main(argv):
         return p.returncode
     except subprocess.TimeoutExpired:
         print(f"\nrun_cases exceeded {limit}s; cancelling the simulation", flush=True)
-        print("cancelled:", fx.cancel_running_simulations(), flush=True)
+        try: print("cancelled:", fx.cancel_running_simulations(), flush=True)
+        except Exception as e: print("warning: cancel failed:", str(e)[:120], flush=True)
         return 2
 
 
