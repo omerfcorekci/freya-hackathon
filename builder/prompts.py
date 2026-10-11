@@ -123,8 +123,9 @@ CB_TIME = "The time of day they said, in their own words (around eleven, 6 pm, a
 
 STANCE = ("What the customer's MOST RECENT message says about paying: 'agrees' = yes to what was just proposed (yes, okay, that works, I can do that); "
           "'proposes' = names their own day, date, period or amount (tomorrow, Friday, the 26th, next week, 200 dollars, half, my salary comes on the 6th); "
-          "'too_much' = says the amount is too much or they cannot pay that much, without naming an amount; "
-          "'refuses' = no, cannot pay, will not pay, with no date and no amount; 'vague' = only a vague period with no exact day (next week, end of the month, when I get paid); "
+          "'too_much' = EXPLICITLY says the amount asked is too much, too high, more than they can afford or that they cannot pay that much, without naming an amount "
+          "(stress, a busy day or money being tight in general is NOT too_much); "
+          "'refuses' = an explicit no to paying (no, I cannot pay, I will not pay) with no date and no amount; 'vague' = only a vague period with no exact day (next week, end of the month, when I get paid); "
           "'hardship' = mentions illness, a death in the family, losing a job or similar; 'paid' = says they already paid; "
           "'dispute' = says the debt is not theirs, they never had the product, or it was closed or paid off; "
           "'plan' = asks for a payment plan, lower instalments or to restructure; 'human' = asks for a real person; "
