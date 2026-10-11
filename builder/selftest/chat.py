@@ -28,7 +28,7 @@ def run(spec, cfg, api, workflow_id, trace, budget, cases_path=None):
     for s in scen:
         if not budget.allows(90, "chat/" + s["name"]): break
         if streak >= 2:
-            trace.test("chat/" + s["name"], "SKIP", "chat route unavailable (two scenarios in a row could not start)"); continue
+            trace.test("chat/" + s["name"], "SKIP", "chat route unavailable (two scenarios in a row could not start)"); inconclusive += 1; continue
         result, detail = _attempt(s, cfg, workflow_id, session)
         if result == "INCONCLUSIVE" and budget.allows(120, "chat retry"):
             time.sleep(8); result, detail = _attempt(s, cfg, workflow_id, session)
