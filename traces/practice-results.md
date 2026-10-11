@@ -63,3 +63,6 @@ sorry, the 20th"); re-asks that repeat only the question so an offer is never ma
   call but the `close` node's API call never started after the transfer. The same code runs in the local sandbox in
   milliseconds. The variation itself had not reached the platform yet (it hung on the test runner, not on the shipped
   code string); fixed in `cf17cf3`, saved 14:24 UTC and run again below.
+- Varied openers live (saves 14:24 UTC; run 14:25–14:33 UTC, platform still slow, median slowest turn 19–29 s): Brief A
+  **10/10**, Brief B **3/3**. Some calls show a doubled `close_call` or a third `verify_identity`: the agent's retry after
+  a tool call that did not answer in time; the ledger and the judge accepted every call. This is the frozen code.
