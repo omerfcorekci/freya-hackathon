@@ -360,7 +360,7 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Status (Sunday 13:30 UTC, 16:30 TR)
+## 14. Status (Sunday 14:10 UTC, 17:10 TR)
 
 Done:
 - Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25–0.45, ~50–65 s),
@@ -370,7 +370,7 @@ Done:
   all speaking styles pass except that `talkative` fluctuates (the platform cuts the customer's sentences).
 - Generalisation: spec extraction is stable across three runs on the raw-material rehearsal brief; Brief C (the kit's
   API, 30 different rules) was extracted correctly and the compiled agent followed Brief C's rules in 9/9 live calls.
-- Unit tests: 100 (`python3 -m unittest discover builder/tests`).
+- Unit tests: 104 (`python3 -m unittest discover builder/tests`).
 - Robustness to briefs unlike A/B (13:00–13:25 UTC, after the freeze candidate): a spec with only the required keys
   compiles, lints and runs a call (`builder/tests/test_sparse_spec.py`); attempts default to the asked amount then the
   floor by the deadline when the brief lists none; hardship without rules gets one sentence of sympathy and the normal
@@ -411,6 +411,6 @@ the hackathon and what we already do about it:
   loop. The builder reads the whole brief in one structured extraction with source quotes, compiles deterministically,
   and its tests are the organisers' scorer plus fixed offline checks that never adapt to a failure.
 - One of the paper's conduct judges fails an agent that begins more than one customer-facing response with the same
-  opening phrase. No brief so far has such a rule and the agent does repeat leads such as "I understand."; if a hidden
-  brief states it, that is a rule the current code cannot express (known gap, noted here on purpose, not changed before
-  the freeze).
+  opening phrase. No brief so far has such a rule, but the agent used to repeat leads such as "I understand." and
+  "Thank you." turn after turn. Since 14:08 UTC the node runner varies a repeated lead with a synonym on each later use
+  (commit `4abbb4b`); sentences the brief dictates and the questions themselves are never changed.
