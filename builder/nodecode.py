@@ -806,6 +806,9 @@ def _eval_body(vars, CFG):
                 for j in range(1, n + 1): _pset(vars, j, "ask_amount", _gf(vars, _pk(j, "floor")))
             vars["route"] = _advance(vars, CFG, now); return
     # ---- single product k ----
+    if stance == "proposes" and n > 1 and _means_all(ptext) and d_status == "date" and amt is None:
+        if _settle_all_open(vars, CFG, d_status, d_val, now):
+            vars["route"] = _advance(vars, CFG, now); return
     if stance == "agrees":
         d = str(_pget(vars, k, "offer_date", "")) or today.isoformat()
         a = _pget(vars, k, "offer_amount", "")
@@ -849,6 +852,23 @@ def _eval_body(vars, CFG):
     _pset(vars, k, "state", "refused")
     vars["say_prefix"] = "I understand, I will not insist. "
     vars["route"] = _advance(vars, CFG, now)
+
+def _means_all(text):
+    return bool(re.search(r"\b(both|all|everything|all of them|the two|the three|each of them|every one)\b", str(text or "").lower()))
+
+def _settle_all_open(vars, CFG, d_status, d_val, now):
+    """One date for every open product: each is capped to its own deadline when the brief says so. Returns True when any settled."""
+    n = _n_products(vars); ok_any = False
+    pd = _to_date(d_val) if d_status == "date" else None
+    if pd is None: return False
+    for j in range(1, n + 1):
+        if str(_pget(vars, j, "state")) != "open": continue
+        dl = _to_date(str(_pget(vars, j, "deadline")))
+        if dl is not None and pd > dl and str(_s(CFG, "multi_product.one_date_past_a_deadline", "that_product_on_its_own_deadline")) == "that_product_on_its_own_deadline":
+            _settle(vars, j, dl.isoformat(), _gf(vars, _pk(j, "ask_amount"), _gf(vars, _pk(j, "full"))), CFG); _pset(vars, j, "capped", 1); ok_any = True; continue
+        d_ok, line = _validate_date(vars, j, d_status, d_val, CFG, now)
+        if d_ok: _settle(vars, j, d_ok, _gf(vars, _pk(j, "ask_amount"), _gf(vars, _pk(j, "full"))), CFG); ok_any = True
+    return ok_any
 
 def _match_product(vars, text, n):
     t = str(text or "").lower()

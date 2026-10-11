@@ -268,6 +268,13 @@ class BriefBTests(unittest.TestCase):
         self.assertEqual(s.say("proposes"), "negotiate"); self.assertEqual(s.vars["neg_phase"], "all"); self.assertIn("exact day", s.vars["say"])
         self.assertEqual(s.say("proposes", date="30"), "confirm"); self.assertIn("23 October", s.vars["readback_text"]); self.assertIn("30 October", s.vars["readback_text"])
 
+    def test_both_in_per_product_phase(self):
+        s = self.sim([CC("6604", 300.0, 4, 90.0), LOAN("p2", "personal_loan", 900.0, 20, 300.0)]); s.start()
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertEqual(s.vars["neg_phase"], "product"); self.assertIn("16 October", s.vars["say"])
+        self.assertEqual(s.say("proposes", date="the thirtieth of October", product="both"), "confirm")
+        self.assertIn("30 October", s.vars["readback_text"]); self.assertIn("23 October", s.vars["readback_text"])
+        s.confirm(); self.assertEqual(sorted(s.promises), [("p1", 300.0, "2026-10-30"), ("p2", 900.0, "2026-10-23")])
+
     def test_pub11_three_one_date(self):
         s = self.sim([CC("2288", 220.0, 9, 66.0), LOAN("p2", "personal_loan", 640.0, 9, 213.0), LOAN("p3", "car_loan", 75.0, 3, 25.0)])
         self.assertEqual(s.start(), "negotiate"); self.assertEqual(s.vars["neg_phase"], "all"); self.assertIn("all of them today", s.vars["say"])
