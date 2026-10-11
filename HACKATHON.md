@@ -360,23 +360,33 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Status (Sunday 00:00 UTC, 03:00 TR)
+## 14. Status (Sunday 01:15 UTC, 04:15 TR)
 
 Done tonight:
-- Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25, ~55 s), compiles,
-  lints, dry-runs, saves in place, exports, self-tests, writes the trace. Architecture in `builder/README.md`.
-- Brief A practice cases: **10/10** (version 5); Brief B: **3/3**. Median agent turn 2–5 s (the dialogue model is not used).
+- Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25–0.45, ~50–65 s),
+  compiles, lints, dry-runs, saves in place, exports, self-tests, writes the trace. Architecture in `builder/README.md`.
+  A fresh `git clone` ran the hidden-brief command end to end in 50 s on the raw rehearsal brief.
+- Practice cases (details in `traces/practice-results.md`): Brief A **10/10 ×3**, Brief B **3/3 ×3** (plain style);
+  speaking styles after fixes: pieces, corrects, asks_back, in_words all 10/10 (A) and 3/3 (B); talkative 10/10 (A),
+  2/3 (B). Median agent turn 2–5 s (the dialogue model is never used).
 - Rehearsal briefs (another bank, business customers, 3 identity questions, 4 bands, Saturday business day, other
-  outcome names, raw mail + policy + memo + code list): spec extraction correct including the memo's overrides;
-  compiled workflows accepted by the platform's dry run.
-- `builder/batch_tests.py` runs A and B with `--reps 3` and the speaking styles sequentially under a watchdog.
+  outcome names, raw mail + policy + memo + code list): spec extraction correct including the memo's overrides and a
+  custom situation ("business closed"); compiled workflows accepted by the platform's dry run.
+- Tooling: `builder/batch_tests.py` (reps and styles under a watchdog), `builder/run_cases_safe.py` (cancels a
+  simulation the platform leaves hanging), `builder/leak_check.py` (for Sunday), `SUBMISSION.md` (procedure, form, checklist).
 
-Open:
-- [ ] Review `results/batch-reps3.log` (A and B three times each) and the style runs; fix what fails 3/3.
-- [ ] The chat route (`/api/v2/chat/message`) returned 503/504 for long stretches; the chat self-test marks that
-      inconclusive. For hidden briefs without practice cases the live test is only this route.
-- [ ] YC registration and team name; the submission email address from the kit email; GitHub repo access for the organisers.
-- [ ] Dry run from a fresh clone (SUBMISSION.md), then freeze by 15:30 UTC.
+Known limits:
+- The platform cuts long customer messages mid-sentence (talkative style). The agent now detects a cut-off turn through
+  extraction and asks again without counting it; one talkative B case still fails sometimes.
+- The chat route (`/api/v2/chat/message`) returned 503/504 for most of the night; the builder's chat self-test marks
+  that inconclusive. For hidden briefs without practice cases the only live test is this route, so a hidden-brief run may
+  end with offline tests only. The simulation route was fine throughout.
+- Judges read literally: the opening line says "kept on record" instead of "recorded"; re-asks repeat only the question.
+
+Open for the morning:
+- [ ] Read `results/batch-reps3-v10.log` and `results/batch-talkative-reps2.log` (running at 01:15 UTC).
+- [ ] YC registration and team name; the submission email address from the kit email; GitHub repo access for the organisers; push.
+- [ ] Freeze by 15:30 UTC: `git status` clean, unit tests green, one last fresh-clone dry run (SUBMISSION.md).
 
 ## 15. Sunday
 
