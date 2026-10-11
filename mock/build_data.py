@@ -41,7 +41,7 @@ def main(src):
             card_keyed = fields[0] == "cardNumber"
             table = {}
             for key, a in answers(tree, fields[1:] if not card_keyed else fields):
-                table["|".join(key)] = {"http": a.get("http", 200), "delay": a.get("gecikmeSaniye") or 0, "body": a.get("response", a.get("yanit"))}
+                table["|".join(key)] = {"http": a.get("http", 200), "delay": a.get("delaySeconds") or a.get("gecikmeSaniye") or 0, "body": a.get("response", a.get("yanit"))}
                 body = {"data": {}, "call": {"ani": "05000000000", "lang": "tr"}}
                 if not card_keyed: body["data"]["customerNo"] = no
                 for f, v in zip(fields[1:] if not card_keyed else fields, key): body["data"][f] = v
