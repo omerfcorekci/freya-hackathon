@@ -70,8 +70,9 @@ Rules that cost us runs on the practice round, all mandatory:
 - Extraction: every variable has `min_confidence` (0.5 for enums, 0.6 for free text), a `description` that says
   "from the customer's most recent message only" and lists the enum values. Enum values are plain words. Add a
   variable for the customer's question kind if they may ask things back. The platform validates every value a code
-  node writes against the variable's schema: a reset to `""` of an enum variable is rejected and the old value stays
-  for the next turn. Give every enum a value such as `none`, reset to it in code, and treat it as "not said".
+  node writes against the variable's schema: a reset to `""` or `None` of an extracted variable is rejected and the
+  old value stays for the next turn (`<node>_response.validation_errors` says "rejected by schema validation"). Give
+  every extracted variable a documented value such as `none`, reset to that string in code, and treat it as "not said".
 - `api_request` nodes: `pre_actions` with one `api_call` whose `parameters.properties` carry `url`, `method`,
   `headers`, `body` with `default` values (never `const`); `{{var}}` placeholders inside defaults; `response_mapping`
   paths start with `data.`; a tool that answered HTTP 500 raises `function_call_error` and the mappings do not run,
