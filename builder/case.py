@@ -8,7 +8,7 @@ workflow plus scripted test conversations. Everything around it is deterministic
 lint, platform dry run, one repair turn on errors, save in place, export, chat-route self-tests, trace. Two traces are
 written: `traces/<slot>.log` (plain text, keys masked) and `traces/<slot>.session.jsonl` (every message of the run).
 """
-import asyncio, dataclasses, json, os, sys, time
+import asyncio, dataclasses, json, os, shutil, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path: sys.path.insert(0, ROOT)
@@ -109,7 +109,9 @@ def _chat_tests(tests, workflow_id, tr, budget):
 
 def run(folder, mock_url, slot="final", budget_seconds=1700, model=DEFAULT_MODEL, no_chat=False, max_turns=150):
     folder = os.path.abspath(folder); mock_url = mock_url.rstrip("/")
-    out_dir = os.path.join(ROOT, "out", slot); text_dir = os.path.join(out_dir, "text"); os.makedirs(out_dir, exist_ok=True)
+    out_dir = os.path.join(ROOT, "out", slot); text_dir = os.path.join(out_dir, "text")
+    if os.path.isdir(out_dir): shutil.rmtree(out_dir)          # every run designs from the case folder alone, never from an earlier run's files
+    os.makedirs(out_dir, exist_ok=True)
     tr = Trace(os.path.join(ROOT, "traces", f"{slot}.log")); budget = Budget(budget_seconds, tr)
     session_path = os.path.join(ROOT, "traces", f"{slot}.session.jsonl"); open(session_path, "w").close()
     tr.start(folder, mock_url, slot, int(budget_seconds), model)
