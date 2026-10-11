@@ -68,8 +68,12 @@ def _counts(wf):
     return len(nodes), tools
 
 
-def _problems(wf):
+def _problems(wf, mock_url=""):
     errors, warnings = lintmod.lint(wf)
+    if mock_url:        # the final's rule: the phone agent calls only our mock
+        import re
+        for u in sorted(set(re.findall(r"https?://[^\s\"'<>]+", json.dumps(wf)))):
+            if not u.startswith(mock_url): errors.append(f"tool url outside the mock: {u[:120]}")
     if errors: return errors, warnings
     import freya
     try: freya.validate_workflow("validate", wf)
@@ -125,7 +129,7 @@ def run(folder, mock_url, slot="final", budget_seconds=1700, model=DEFAULT_MODEL
         tr.model_call(model, f"design the agent from the case folder (Claude Code run, {info['turns']} turns, session {info['session_id']})", seconds=info["seconds"], cost_usd=info["cost"])
         wf_path = os.path.join(out_dir, "workflow.json")
         wf = json.load(open(wf_path, encoding="utf-8"))
-        errors, warnings = _retry(lambda: _problems(wf), tr, "validate")
+        errors, warnings = _retry(lambda: _problems(wf, mock_url), tr, "validate")
         for rep in range(2):
             if not errors: break
             tr.warn(f"workflow has {len(errors)} problem(s): " + " | ".join(errors)[:600])
@@ -134,7 +138,7 @@ def run(folder, mock_url, slot="final", budget_seconds=1700, model=DEFAULT_MODEL
                    f"then stop. Problems:\n" + "\n".join("- " + e for e in errors[:20]))
             info = await_run(fix, session_path, model, 40, tr, resume=info.get("session_id"))
             tr.model_call(model, f"repair {rep + 1} ({info['turns']} turns)", seconds=info["seconds"], cost_usd=info["cost"])
-            wf = json.load(open(wf_path, encoding="utf-8")); errors, warnings = _retry(lambda: _problems(wf), tr, "validate")
+            wf = json.load(open(wf_path, encoding="utf-8")); errors, warnings = _retry(lambda: _problems(wf, mock_url), tr, "validate")
         n_nodes, n_tools = _counts(wf)
         tr.compile(n_nodes, n_tools, errors, len(warnings))
         for w in warnings[:10]: tr.warn("lint: " + w)
