@@ -63,6 +63,7 @@ SPEC_SCHEMA = _o({
             "window_end": _s("Latest callback time, HH:MM."),
             "inclusive": _b("Whether the window ends are included."),
             "after_now": _b("Whether the callback must be later than the call's own time."),
+            "today_must_be_business_day": _b("True only when the brief says a callback today is possible only on a business day."),
             "retries_if_outside": _i("How many times to ask for another time when the offered one is outside the window."),
             "scheduled": OUTCOME,
             "not_scheduled": OUTCOME,
@@ -83,6 +84,7 @@ SPEC_SCHEMA = _o({
         }), "The security questions in the order they are asked."),
         "one_at_a_time": _b(""),
         "max_wrong_total": _i("Total wrong answers that end the check."),
+        "max_wrong_per_question": _i("Wrong answers to one question that end the check, when the brief has such a rule; else 0."),
         "retry_same_question": _b("A wrong answer may be asked again."),
         "failed": _o({"say": _s("What to tell the customer after the check failed."), "outcome": OUTCOME}, ""),
         "declined": _o({"explain_once": _s("The explanation given once when the customer does not want to answer."),
@@ -145,7 +147,8 @@ SPEC_SCHEMA = _o({
         "flat_refusal_definition": _s("The brief's words for what counts as a flat refusal."),
         "attempts": _a(_o({
             "n": _i("Attempt number, 1-based."),
-            "amount": _s("", ["current_ask", "full", "floor"]),
+            "amount": _s("current_ask is whatever was last asked for, full the past-due amount, floor the product's minimum, fraction_of_full a share of the past-due amount.", ["current_ask", "full", "floor", "fraction_of_full"]),
+            "amount_fraction": _n("For fraction_of_full, the share of the past-due amount (0.5 = half); else 0."),
             "date_kind": _s("", ["last_business_day_this_week_or_next", "next_business_day", "deadline", "today", "custom"]),
             "date_text": _s("The brief's words when date_kind is custom."),
             "bands": _a(_s(""), "Band names this attempt applies to; empty means all bands."),
@@ -369,6 +372,8 @@ def validate_spec(spec, enums):
     for i, a in enumerate(get(spec, "persuasion.attempts", []) or []):
         for bn in a.get("bands") or []:
             if bn not in [b.get("name") for b in bands]: problems.append(f"persuasion.attempts[{i}] names unknown band '{bn}'")
+        if a.get("amount") == "fraction_of_full" and not (0 < float(a.get("amount_fraction") or 0) <= 1):
+            problems.append(f"persuasion.attempts[{i}] amount_fraction must be between 0 and 1 for fraction_of_full")
     for t in ("window_start", "window_end"):
         v = get(spec, f"third_party.callback.{t}")
         if get(spec, "third_party.callback.enabled") and v and not re.fullmatch(r"\d{1,2}:\d{2}", str(v)):

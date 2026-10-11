@@ -219,7 +219,7 @@ def _ask_for(q): return str((q or dict()).get("ask") or "the security answer")
 
 def _node_identity_prep(vars, CFG):
     qs = _questions(CFG)
-    vars["id_done"] = ""; vars["id_wrong"] = 0; vars["id_refusals"] = 0; vars["id_buf"] = ""; vars["verified"] = 0
+    vars["id_done"] = ""; vars["id_wrong"] = 0; vars["id_wrong_by"] = "{}"; vars["id_refusals"] = 0; vars["id_buf"] = ""; vars["verified"] = 0
     vars["id_stance"] = "other"; vars["id_answer_text"] = ""; vars["resume_to"] = "identity"
     if not qs:
         vars["id_next_field"] = ""; vars["verified"] = 1; vars["say_prefix"] = "Thank you. "; vars["route"] = "fetch"; return
@@ -398,7 +398,8 @@ def _identity_after_body(vars, CFG):
     hints = (q or dict()).get("hints") or dict()
     if hint and hint in hints:
         h = hints[hint] or dict()
-        if h.get("counts_as_wrong"): vars["id_wrong"] = _gi(vars, "id_wrong", 0) + 1
+        if h.get("counts_as_wrong") and _wrong_answer(vars, CFG, field):
+            _id_fail(vars, CFG); return
         _say(vars, _sentence(h.get("say") or "Could you repeat that?") + " " + ask, ask); vars["route"] = "identity"; return
     if not _truthy(ok) and not _truthy(verified):
         if err and "verified" not in err.lower() and "wrong" not in err.lower():
@@ -416,14 +417,26 @@ def _identity_after_body(vars, CFG):
         vars["id_next_field"] = nxt
         ask2 = "Could you please tell me " + _ask_for(_question(CFG, nxt)) + "?"
         _say(vars, "Thank you. And " + ask2[0].lower() + ask2[1:], ask2); vars["route"] = "identity"; return
-    wrong = _gi(vars, "id_wrong", 0) + 1; vars["id_wrong"] = wrong
     try: left_n = int(float(left))
-    except Exception: left_n = int(_s(CFG, "identity.max_wrong_total", 3) or 3) - wrong
-    if left_n <= 0 or wrong >= int(_s(CFG, "identity.max_wrong_total", 3) or 3):
-        _outcome(vars, _s(CFG, "identity.failed.outcome"))
-        failed = _sentence(_s(CFG, "identity.failed.say", "Please use the mobile app or visit a branch."))
-        _say(vars, "I am sorry, that does not match and I cannot verify your identity on this call. " + failed + " " + _goodbye()); vars["route"] = "close"; return
+    except Exception: left_n = 1
+    if _wrong_answer(vars, CFG, field) or left_n <= 0:
+        _id_fail(vars, CFG); return
     _say(vars, "I am sorry, that does not match our records. " + ask, ask); vars["route"] = "identity"
+
+def _wrong_answer(vars, CFG, field):
+    """Count a wrong answer, in total and for this question. Returns True when a limit of the brief is reached."""
+    wrong = _gi(vars, "id_wrong", 0) + 1; vars["id_wrong"] = wrong
+    try: by = json.loads(str(_g(vars, "id_wrong_by", "") or "{}"))
+    except Exception: by = dict()
+    by[str(field)] = int(by.get(str(field), 0)) + 1; vars["id_wrong_by"] = json.dumps(by)
+    per_q = int(_s(CFG, "identity.max_wrong_per_question", 0) or 0)
+    if wrong >= int(_s(CFG, "identity.max_wrong_total", 3) or 3): return True
+    return per_q > 0 and by[str(field)] >= per_q
+
+def _id_fail(vars, CFG):
+    _outcome(vars, _s(CFG, "identity.failed.outcome"))
+    failed = _sentence(_s(CFG, "identity.failed.say", "Please use the mobile app or visit a branch."))
+    _say(vars, "I am sorry, that does not match and I cannot verify your identity on this call. " + failed + " " + _goodbye()); vars["route"] = "close"
 
 
 # ---- third party ------------------------------------------------------------------------------------------------------
@@ -436,15 +449,15 @@ def _node_tp_prep(vars, CFG):
 def _cb_allowed_dates(today, CFG):
     cb = _s(CFG, "third_party.callback") or dict(); cal = _cal(CFG)
     kind = str(cb.get("days_kind") or "today_or_next_business_day"); n = int(cb.get("days_n") or 0)
+    if kind == "within_n_calendar_days": return [today + datetime.timedelta(days=i) for i in range(max(n, 1) + 1)]
     out = [today]
-    if kind == "today_only": return out
-    if kind == "today_or_next_business_day": return out + [_next_business_day(today, cal)]
+    if cb.get("today_must_be_business_day") is True and not _is_business_day(today, cal): out = []
+    if kind == "today_only": return out or [_next_business_day(today, cal)]
     if kind == "within_n_business_days":
         d = today
         for i in range(max(n, 1)):
             d = _next_business_day(d, cal); out.append(d)
         return out
-    if kind == "within_n_calendar_days": return [today + datetime.timedelta(days=i) for i in range(max(n, 1) + 1)]
     return out + [_next_business_day(today, cal)]
 
 def _node_tp_eval(vars, CFG): _with_question_reply(vars, CFG, _tp_eval_body)
@@ -473,9 +486,9 @@ def _tp_eval_body(vars, CFG):
     d_status, d_val = _resolve_date_expr(dtext, now, cal) if dtext else ("none", "")
     d = _to_date(d_val) if d_status == "date" else None
     t = _parse_time(ttext) if ttext else None
-    if d is None and t is not None:
-        if t > ("%02d:%02d" % (now.hour, now.minute)): d = today
-        elif len(allowed) > 1: d = allowed[1]
+    if d is None and t is not None:     # a time alone: the first allowed day on which that time is still ahead
+        for x in allowed:
+            if x != today or t > ("%02d:%02d" % (now.hour, now.minute)): d = x; break
     ws = str(cb.get("window_start") or "00:00"); we = str(cb.get("window_end") or "23:59")
     ok = d is not None and t is not None and d in allowed and ws <= t <= we
     if ok and cb.get("after_now", True) and d == today and t <= ("%02d:%02d" % (now.hour, now.minute)): ok = False
@@ -589,9 +602,14 @@ def _attempt_offers(vars, k, CFG):
         out = [dict(amount="current_ask", date_kind="deadline"), dict(amount="floor", date_kind="deadline")]
     return out
 
-def _offer_amount(vars, k, kind):
+def _offer_amount(vars, k, kind, fraction=0):
     if kind == "full": return _gf(vars, _pk(k, "full"))
     if kind == "floor": return _gf(vars, _pk(k, "floor"))
+    if kind == "fraction_of_full":
+        try: f = float(fraction or 0)
+        except Exception: f = 0.0
+        if 0 < f <= 1: return round(_gf(vars, _pk(k, "full")) * f + 1e-9, 2)
+        return _gf(vars, _pk(k, "full"))
     return _gf(vars, _pk(k, "ask_amount"), _gf(vars, _pk(k, "full")))
 
 def _when(vars, CFG, date_iso):
@@ -620,7 +638,7 @@ def _make_attempt(vars, k, CFG, now):
         a = offers[i]
         d = _resolve_offer_date(str(a.get("date_kind", "")), today, deadline, cal)
         if not d and a.get("date_text"): d = deadline
-        amt = _offer_amount(vars, k, str(a.get("amount", "current_ask")))
+        amt = _offer_amount(vars, k, str(a.get("amount", "current_ask")), a.get("amount_fraction"))
         if d and [d, str(amt)] not in refused:
             _pset(vars, k, "offer_date", d); _pset(vars, k, "offer_amount", amt)
             lead = "I understand."

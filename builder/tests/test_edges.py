@@ -121,5 +121,78 @@ class CallbackAndOpeningEdges(unittest.TestCase):
         self.assertEqual(s.say("refuses"), "close"); self.assertEqual(s.close(), ("no_promise", "refused"))
 
 
+class BriefRuleVariants(unittest.TestCase):
+    """Rules a hidden brief may state differently from Brief A/B: callbacks only on business days, a wrong-answer limit per
+    question, persuasion attempts that propose a share of the past-due amount."""
+    @classmethod
+    def setUpClass(cls):
+        cls.api = load_openapi(os.path.join(ROOT, "tools", "openapi.json")); cls.base = load_spec("spec-brief-a.json")
+
+    def spec(self, **changes):
+        sp = json.loads(json.dumps(self.base))
+        for path, val in changes.items():
+            cur = sp; parts = path.split(".")
+            for part in parts[:-1]: cur = cur.setdefault(part, {})
+            cur[parts[-1]] = val
+        return sp
+
+    def test_callback_today_allowed_on_a_saturday_by_default(self):
+        s = Sim(self.base, self.api, [], now="2026-10-17T11:00"); s.node("tp_prep")        # Saturday; Brief A says today or the next business day
+        s.vars.update({"tp_stance": "gives_time", "cb_date_text": "today", "cb_time_text": "3 pm"}); self.assertEqual(s.node("tp_eval"), "schedule")
+        self.assertEqual(s.vars["cb_date"], "2026-10-17")
+
+    def test_callback_today_only_if_business_day(self):
+        sp = self.spec(**{"third_party.callback.today_must_be_business_day": True})
+        s = Sim(sp, self.api, [], now="2026-10-17T11:00"); s.node("tp_prep")
+        s.vars.update({"tp_stance": "gives_time", "cb_date_text": "today", "cb_time_text": "3 pm"}); self.assertEqual(s.node("tp_eval"), "again")
+        self.assertIn("19 October", s.vars["say"]); self.assertNotIn("17 October", s.vars["say"])
+        s.vars.update({"tp_stance": "gives_time", "cb_date_text": "", "cb_time_text": "11 am"}); self.assertEqual(s.node("tp_eval"), "schedule")
+        self.assertEqual((s.vars["cb_date"], s.vars["cb_time"]), ("2026-10-19", "11:00"))               # a time alone lands on the first allowed day
+
+    def test_time_alone_earlier_than_now_goes_to_next_day(self):
+        s = Sim(self.base, self.api, []); s.node("tp_prep")                                                 # Wednesday 11:00
+        s.vars.update({"tp_stance": "gives_time", "cb_date_text": "", "cb_time_text": "10 am"}); self.assertEqual(s.node("tp_eval"), "schedule")
+        self.assertEqual(s.vars["cb_date"], "2026-10-15")
+
+    def wrong(self, s):
+        s.vars.update({"id_stance": "answering", "id_answer_text": "1 January 1990"}); self.assertEqual(s.node("identity_eval"), "verify")
+        s.vars.update({"vi_ok": "true", "vi_verified": "false", "vi_all": "false", "vi_left": "5", "vi_hint": ""}); return s.node("identity_after")
+
+    def test_total_limit_without_per_question_rule(self):
+        s = Sim(self.base, self.api, []); s.node("identity_prep")
+        self.assertEqual(self.wrong(s), "identity"); self.assertEqual(self.wrong(s), "identity"); self.assertEqual(self.wrong(s), "close")   # Brief A: three wrong in total
+        self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_verified", "failed"))
+
+    def test_per_question_limit_closes_earlier(self):
+        sp = self.spec(**{"identity.max_wrong_per_question": 2})
+        s = Sim(sp, self.api, []); s.node("identity_prep")
+        self.assertEqual(self.wrong(s), "identity"); self.assertEqual(self.wrong(s), "close")
+        self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_verified", "failed")); self.assertEqual(json.loads(s.vars["id_wrong_by"]), {"date_of_birth": 2})
+
+    def test_per_question_limit_counts_each_question_apart(self):
+        sp = self.spec(**{"identity.max_wrong_per_question": 2, "identity.max_wrong_total": 5})
+        s = Sim(sp, self.api, []); s.node("identity_prep")
+        self.assertEqual(self.wrong(s), "identity")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "14 March 1988"}); s.node("identity_eval")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "false", "vi_left": "4", "vi_hint": ""}); self.assertEqual(s.node("identity_after"), "identity")
+        self.assertEqual(s.vars["id_next_field"], "phone_last4")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "1234"}); s.node("identity_eval")
+        s.vars.update({"vi_ok": "true", "vi_verified": "false", "vi_all": "false", "vi_left": "3", "vi_hint": ""}); self.assertEqual(s.node("identity_after"), "identity")   # first wrong on question 2
+        self.assertEqual(json.loads(s.vars["id_wrong_by"]), {"date_of_birth": 1, "phone_last4": 1})
+
+    def test_attempt_proposes_half_of_the_past_due(self):
+        sp = self.spec(**{"persuasion.attempts": [{"n": 1, "amount": "fraction_of_full", "amount_fraction": 0.5, "date_kind": "deadline", "bands": []}]})
+        s = Sim(sp, self.api, [CC("1111", 421.0, 10, 150.0)]); s.start()
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("210.50", s.vars["say"]); self.assertIn("23 October", s.vars["say"])
+        self.assertEqual(s.say("agrees"), "confirm"); s.confirm(); self.assertEqual(s.promises, [("p1", 210.5, "2026-10-23")])
+
+    def test_attempts_missing_default_to_ask_then_floor_by_deadline(self):
+        sp = self.spec(**{"persuasion.attempts": []})
+        s = Sim(sp, self.api, [CC("1111", 500.0, 20, 150.0)]); s.start()                                    # late band: two attempts in Brief A
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("500", s.vars["say"]); self.assertIn("23 October", s.vars["say"])
+        self.assertEqual(s.say("refuses"), "negotiate"); self.assertIn("150", s.vars["say"]); self.assertIn("23 October", s.vars["say"])
+        self.assertEqual(s.say("refuses"), "close"); self.assertEqual(s.close(), ("no_promise", "refused"))
+
+
 if __name__ == "__main__":
     unittest.main()
