@@ -149,6 +149,10 @@ class BriefATests(unittest.TestCase):
         s = self.sim([]); s.vars.update({"ack": "question", "q_kind": "robot"}); self.assertEqual(s.node("opening_tally"), "again")
         self.assertIn("digital assistant", s.vars["say"]); self.assertIn("Am I speaking with", s.vars["say"])
 
+    def test_opening_cut_off_wrong_number_reasks(self):
+        s = self.sim([]); s.vars.update({"ack": "wrong_number", "clarity": "cut_off"}); self.assertEqual(s.node("opening_tally"), "again"); self.assertIn("cut off", s.vars["say"])
+        s.vars.update({"ack": "wrong_number", "clarity": "complete"}); self.assertEqual(s.node("opening_tally"), "close"); self.assertEqual(s.vars["reason"], "wrong_number")
+
     def test_opening_unclear_twice(self):
         s = self.sim([]); s.vars["ack"] = "unclear"; self.assertEqual(s.node("opening_tally"), "again")
         s.vars["ack"] = "unclear"; self.assertEqual(s.node("opening_tally"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_reached", "unclear"))
@@ -234,7 +238,8 @@ class BriefATests(unittest.TestCase):
     def test_reask_repeats_only_the_question(self):
         s = self.sim([CC("1903", 2125.1, 12, 637.5)]); s.start()
         s.say("too_much"); self.assertIn("overdue", s.vars["say"])
-        self.assertEqual(s.say("other"), "negotiate"); self.assertNotIn("overdue", s.vars["say"]); self.assertIn("Can you pay 637.50", s.vars["say"])
+        self.assertEqual(s.say("other"), "negotiate"); self.assertNotIn("overdue", s.vars["say"]); self.assertNotIn("637.50", s.vars["say"]); self.assertIn("work for you", s.vars["say"])
+        self.assertEqual(s.say("agrees"), "confirm"); self.assertIn("637.50", s.vars["readback_text"])
 
     def test_identity_side_question_no_reask(self):
         s = self.sim([]); s.node("identity_prep")

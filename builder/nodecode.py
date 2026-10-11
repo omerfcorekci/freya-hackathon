@@ -176,6 +176,9 @@ def _node_opening_tally(vars, CFG):
         vars["route"] = "identity"; return
     if ack == "third_party":
         vars["route"] = "third_party"; return
+    if _cut(vars) and ack in ("unclear", "question", "wrong_number", "deceased", "refuses") and _gi(vars, "cut_turns", 0) < 3:
+        vars["cut_turns"] = _gi(vars, "cut_turns", 0) + 1
+        _say(vars, "Sorry, you were cut off. " + ask, ask); vars["route"] = "again"; return
     if ack == "wants_human":
         vars["resume_to"] = "opening"; vars["resume_ask"] = ask
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
@@ -190,9 +193,6 @@ def _node_opening_tally(vars, CFG):
         if n >= int(_s(CFG, "situations.dont_want_to_talk.times", 2) or 2):
             _outcome(vars, _s(CFG, "situations.dont_want_to_talk.before_verified") or _s(CFG, "identity.declined.outcome"))
             _say(vars, "I understand and will not keep you. " + _goodbye()); vars["route"] = "close"; return
-    if _cut(vars) and ack in ("unclear", "question") and _gi(vars, "cut_turns", 0) < 3:
-        vars["cut_turns"] = _gi(vars, "cut_turns", 0) + 1
-        _say(vars, "Sorry, you were cut off. " + ask, ask); vars["route"] = "again"; return
     n = _gi(vars, "ask_count", 1) + 1; vars["ask_count"] = n
     if n > int(_s(CFG, "opening.max_asks", 2) or 2):
         _outcome(vars, _s(CFG, "opening.unclear"))
