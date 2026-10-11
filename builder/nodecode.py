@@ -90,6 +90,12 @@ def _cut(vars):
     c = str(_g(vars, "clarity", "complete")); vars["clarity"] = "complete"
     return c == "cut_off"
 
+def _reask(vars):
+    """What to repeat after a non-answer: an offer is not restated (a judge counts that as offering twice), only confirmed."""
+    ask = str(_g(vars, "last_ask", ""))
+    if ask.startswith("Can you pay "): return "Does that work for you?"
+    return ask
+
 def _std_reply(vars, CFG, kind):
     kind = str(kind or "none")
     if kind == "robot": return _sentence(_s(CFG, "opening.robot_reply", "I am a digital assistant."))
@@ -737,7 +743,7 @@ def _eval_body(vars, CFG):
     if (stance in ("other", "none") or (cut and stance in ("refuses", "vague", "too_much"))) and d_status == "none" and amt is None and not ptext:
         na = _gi(vars, "nonanswer_count", 0) + 1; vars["nonanswer_count"] = na
         if na <= (8 if cut else 4):
-            _say(vars, ("Sorry, you were cut off. " if cut else "Sorry, I missed that. ") + last_ask, last_ask); vars["route"] = "negotiate"; return
+            _say(vars, ("Sorry, you were cut off. " if cut else "Sorry, I missed that. ") + _reask(vars), last_ask); vars["route"] = "negotiate"; return
         vars["nonanswer_count"] = 0
         if stance in ("other", "none"): stance = "refuses"
     else:
