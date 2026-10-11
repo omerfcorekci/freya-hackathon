@@ -39,7 +39,11 @@ def parse_args(argv):
 
 
 def main(argv=None):
-    a = parse_args(argv if argv is not None else sys.argv[1:])
+    argv = list(argv if argv is not None else sys.argv[1:])
+    if argv and os.path.isdir(argv[0]):              # a case folder (the final): builder/case.py takes over
+        from builder import case
+        return case.main(argv)
+    a = parse_args(argv)
     out_dir = os.path.join(ROOT, "out", a.slot); os.makedirs(out_dir, exist_ok=True)
     os.makedirs(os.path.join(ROOT, "submission"), exist_ok=True)
     tr = Trace(os.path.join(ROOT, "traces", a.slot + ".log")); budget = Budget(a.budget_seconds, tr)

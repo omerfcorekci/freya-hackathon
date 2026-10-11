@@ -1,0 +1,10 @@
+{
+  "team": "Ömer Faruk Çörekci",
+  "members": [{ "name": "Ömer Faruk Çörekci", "email": "omerfarukcorekci@gmail.com" }],
+  "repo": "https://github.com/omerfcorekci/freya-hackathon",
+  "commit": "COMMIT_SHA",
+  "run_command": "python3 builder/build.py {case_folder} {mock_url}",
+  "workflow": "submission/final.workflow.json",
+  "trace": "traces/final.log",
+  "mock_url": "MOCK_URL"
+}
