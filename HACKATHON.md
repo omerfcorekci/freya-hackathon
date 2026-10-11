@@ -436,4 +436,8 @@ What we built in the three hours (all in this repo):
   `""` is rejected (the old value stays), and every HTTP error reaches the workflow as the same `function_call_error`
   (a 404 "no card" and a 500 look alike). Run 2 proved the fixes but had started from run 1's files, so run 3 is the
   submitted one: an empty output folder, the case folder alone. Earlier traces are kept as `traces/final-run1.log`
-  and `traces/final-run2.log`.
+  and `traces/final-run2.log`. A fourth run (separate slot, not submitted) tried two more ideas and both failed on the
+  platform: a spoken `on_enter` on an `api_request` node ends the agent's turn before the result is used, and an
+  `on_enter` of type `llm` emits tool-call text instead of the sentence. The skill now forbids both; the submitted
+  agent (run 3) never used them. Replays of the case's example scenarios and of the other rules of the analysis
+  document against the submitted agent are in `traces/final.probes.txt` and `traces/final.probes2.txt`.
