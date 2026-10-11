@@ -53,7 +53,7 @@ Needs Python 3.10+, `pip install claude-agent-sdk`, a Claude login or `ANTHROPIC
 
 ## Sunday checklist (UTC)
 
-- 16:45 `source env.sh`; `python3 -m unittest discover builder/tests`; `python3 builder/build.py builder/rehearsal/clean.md builder/rehearsal/clean.openapi.json --offline --spec out/clean/spec.json` (or without `--spec`) runs clean; platform reachable; support channel open.
+- 16:45 `source env.sh`; `python3 -m unittest discover builder/tests`; `python3 builder/build.py builder/rehearsal/clean.md builder/rehearsal/clean.openapi.json --offline --spec submission/rehearsal-clean.spec.json` (or without `--spec`, one model call) runs clean; platform reachable; support channel open.
 - 17:00 read both hidden briefs for ten minutes. Touch no code.
 - 17:10 run hidden-1; 17:45 run hidden-2 (one simulation at a time per workspace, so sequentially).
 - 18:20 `python3 -c "import json; json.load(open('submission/hidden-1.workflow.json'))"` for both; node and tool counts in the
