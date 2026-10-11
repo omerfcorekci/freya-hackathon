@@ -36,7 +36,7 @@ Needs Python 3.10+, `pip install claude-agent-sdk`, a Claude login or `ANTHROPIC
 
 ```json
 {
-  "team": "TEAM_NAME",
+  "team": "Ömer Faruk Çörekci",
   "repo": "https://github.com/omerfcorekci/freya-hackathon",
   "commit": "COMMIT_SHA",
   "run_command": "python3 builder/build.py {brief_path} {tool_api_path}",
