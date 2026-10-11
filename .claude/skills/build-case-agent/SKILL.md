@@ -74,6 +74,10 @@ Rules that cost us runs on the practice round, all mandatory:
   paths start with `data.`; a tool that answered HTTP 500 raises `function_call_error` and the mappings do not run,
   so the next code node must treat missing mapped variables as the error case and say the case's error sentence.
   Set `max_retries` where the case allows a retry. Only `MOCK_URL` paths.
+- Tool shapes follow the case's service contract exactly (paths, the request envelope and field names, the response
+  envelope): do not rename fields and do not rely on a hook to reshape the body; put the contract's envelope in the
+  body defaults themselves. If the test environment delays an answer, set the action's `config.timeoutMs` above the
+  longest delay listed (and a short `connect_retries`); calls with side effects get `maxRetries` 0.
 - Code nodes: only `json`, `re`, `datetime`; never `{{` or `}}` inside code; never raise (wrap in try/except and set a
   fallback route); booleans and numbers arrive as strings, convert with care; read variables with `vars.get`.
 - Every path reaches an `end_call` node. The farewell is spoken by the previous conversation node; the `end_call` node
