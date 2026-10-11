@@ -24,7 +24,8 @@ other case you may remember.
 1. `OUT/workflow.json`: the phone agent (format below).
 2. `OUT/tests.json`: scripted conversations the harness replays over the platform's chat route against the saved agent.
    A list of objects: `{"name": "...", "variables": {...call variables from the case...}, "turns": ["customer line",
-   ...], "expect": ["substring that must appear in the agent's lines or in a tool URL", ...]}`. Six to ten
+   ...], "expect": ["substring that must appear in the agent's lines or in a tool URL", ...]}` (a service path such
+   as `/voice/v1/x.y` is matched against the URLs the agent called; everything else against what the agent said). Six to ten
    conversations: the ordinary paths, the edge paths, the adversarial ones the case describes. Customer lines in the
    language of the calls. Pick test customers that make each path happen (the test environment file says which
    customer returns what, including errors and delays).
@@ -68,11 +69,16 @@ Rules that cost us runs on the practice round, all mandatory:
   api_request) ends with an `always` transition.
 - Extraction: every variable has `min_confidence` (0.5 for enums, 0.6 for free text), a `description` that says
   "from the customer's most recent message only" and lists the enum values. Enum values are plain words. Add a
-  variable for the customer's question kind if they may ask things back.
+  variable for the customer's question kind if they may ask things back. The platform validates every value a code
+  node writes against the variable's schema: a reset to `""` of an enum variable is rejected and the old value stays
+  for the next turn. Give every enum a value such as `none`, reset to it in code, and treat it as "not said".
 - `api_request` nodes: `pre_actions` with one `api_call` whose `parameters.properties` carry `url`, `method`,
   `headers`, `body` with `default` values (never `const`); `{{var}}` placeholders inside defaults; `response_mapping`
   paths start with `data.`; a tool that answered HTTP 500 raises `function_call_error` and the mappings do not run,
   so the next code node must treat missing mapped variables as the error case and say the case's error sentence.
+  This holds for every non-2xx status: a 404 and a 500 look the same to the workflow (no status, no body), so when
+  the case gives different behaviours for "not found" and "technical error" of one service, choose the one the case's
+  documents and test customers make more likely, say so in `notes.md`, and never pretend to know which one happened.
   Set `max_retries` where the case allows a retry. Only `MOCK_URL` paths.
 - Tool shapes follow the case's service contract exactly (paths, the request envelope and field names, the response
   envelope): do not rename fields and do not rely on a hook to reshape the body; put the contract's envelope in the
