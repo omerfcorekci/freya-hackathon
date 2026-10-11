@@ -108,7 +108,7 @@ def _std_reply(vars, CFG, kind):
 
 def _situation_outcome(CFG, situation):
     m = dict()
-    m["refused"] = _s(CFG, "persuasion.exhausted"); m["hardship"] = _s(CFG, "hardship.decline_outcome")
+    m["refused"] = _s(CFG, "persuasion.exhausted"); m["hardship"] = _s(CFG, "hardship.decline_outcome") or _s(CFG, "persuasion.exhausted")
     m["dispute"] = _s(CFG, "situations.dispute.outcome"); m["paid"] = _s(CFG, "situations.already_paid.outcome")
     m["service_error"] = _s(CFG, "confirmation.failure_outcome")
     return m.get(situation) or dict()
@@ -175,6 +175,10 @@ def _node_opening_tally(vars, CFG):
     if ack == "customer":
         vars["route"] = "identity"; return
     if ack == "third_party":
+        cb = _s(CFG, "third_party.callback") or dict()
+        if _s(CFG, "third_party.enabled") is False or (cb.get("enabled") is False and _s(CFG, "third_party.ask_when_reachable") is not True):
+            _outcome(vars, cb.get("not_scheduled") or _s(CFG, "opening.unclear"))
+            _say(vars, "I am afraid I can only discuss this with " + _customer_name(vars, CFG) + ". I will try again another time. " + _goodbye()); vars["route"] = "close"; return
         vars["route"] = "third_party"; return
     if _cut(vars) and ack in ("unclear", "question", "wrong_number", "deceased", "refuses") and _gi(vars, "cut_turns", 0) < 3:
         vars["cut_turns"] = _gi(vars, "cut_turns", 0) + 1
@@ -570,12 +574,19 @@ def _node_product_facts(vars, CFG):
 
 # ---- negotiation ----------------------------------------------------------------------------------------------------------
 
+def _hardship_rules(CFG):
+    """True when the brief says what to do about hardship (an offer, a queue or an outcome) and has not switched it off."""
+    if _s(CFG, "hardship.enabled") is False: return False
+    return bool(_s(CFG, "hardship.offer") or _s(CFG, "hardship.accept_queue") or _s(CFG, "hardship.decline_outcome") or _s(CFG, "hardship.decline_note_reason"))
+
 def _attempt_offers(vars, k, CFG):
     band = str(_pget(vars, k, "band", "")); out = []
     for a in list(_s(CFG, "persuasion.attempts") or []):
         bands = a.get("bands") or []
         if bands and band not in bands: continue
         out.append(a)
+    if not out:     # the brief allows attempts but does not say what to propose: the amount asked, then the floor, by the deadline
+        out = [dict(amount="current_ask", date_kind="deadline"), dict(amount="floor", date_kind="deadline")]
     return out
 
 def _offer_amount(vars, k, kind):
@@ -773,6 +784,8 @@ def _eval_body(vars, CFG):
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
     if stance == "plan":
         _transfer(vars, CFG, str(_s(CFG, "situations.plan_request.queue", "") or ""), _s(CFG, "situations.plan_request.outcome")); vars["route"] = "transfer"; return
+    if stance == "hardship" and not _hardship_rules(CFG):
+        vars["say_prefix"] = _sentence(_s(CFG, "hardship.sympathy", "I am sorry to hear that.")) + " "; stance = "refuses"
     if stance == "hardship":
         q = _offer_question(str(_s(CFG, "hardship.offer", "connect you with our customer support team") or ""))
         _say(vars, _sentence(_s(CFG, "hardship.sympathy", "I am sorry to hear that.")) + " " + q, q)
@@ -874,6 +887,8 @@ def _eval_body(vars, CFG):
         stance = "refuses"
     line = _make_attempt(vars, k, CFG, now)
     if line:
+        prefix = str(_g(vars, "say_prefix", "")); vars["say_prefix"] = ""
+        if prefix: line = prefix + line.replace("I understand. ", "", 1)
         _say(vars, line); vars["route"] = "negotiate"; return
     _pset(vars, k, "state", "refused")
     vars["say_prefix"] = "I understand, I will not insist. "
