@@ -23,3 +23,8 @@ venv/
 
 # the final case pack (inputs of the builder run, never part of the builder)
 case/
+
+# mock: generated from the case pack by mock/build_data.py, and wrangler local state
+mock/src/data.json
+mock/expected.json
+mock/.wrangler/
