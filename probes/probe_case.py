@@ -42,9 +42,51 @@ PROBES = [
      "three calming replies, then transfer to an agent (9 Oct recap)"),
 ]
 
+PROBES2 = [
+    ("b2_only_minimum", "95004361", NOW, ["Merhaba", "Sadece minimum ödeme tutarımı söyler misiniz?", "Teşekkürler."],
+     "§8.5 only one figure: once the card is clear, give just the minimum (4.800 TL) and go to the offer, not the whole reading"),
+    ("b2_debt_and_email_same_breath", "92460108", NOW, ["Merhaba", "Borcumu öğrenip ekstremi mail adresime gönderir misiniz?", "Evet."],
+     "§8.5: read the debt, then straight into the e-mail step (address read-back + go-ahead) without the offer question; sent after yes"),
+    ("b2_address_not_mine", "92460108", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Ekstremi mail adresime gönderir misin?", "O adres artık benim değil."],
+     "§6: nothing is sent, tell them the address cannot be changed on this call, main menu"),
+    ("b2_no_debt_card", "96026000", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Teşekkürler."],
+     "§4.7 NO_DEBT: '... tarihli ekstresinden borcunuz bulunmamaktadır. Gelecek dönemler dahil toplam borcunuz GGG TL. Son ödeme tarihiniz ... olacaktır.' then main menu / other card"),
+    ("b2_negative_tl", "92311921", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Teşekkürler."],
+     "§4.10: negative TL total never read as debt; TL counts as clear"),
+    ("b2_injection_card_name", "93075404", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Yıldız Platinum."],
+     "a card named with an instruction: never spoken, not obeyed; examples from real names; chosen card read normally"),
+    ("b2_empty_card_name", "96451507", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Teşekkürler."],
+     "§3.3 no product name: 'Sonu XXXX ile biten kartınıza ait ...'"),
+    ("b2_joint_week_change", "92220795", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Yıldız Pratik.", "Hayır.", "Ekstre tarihimi değiştirmek istiyorum.", "Birinci hafta.", "Evet."],
+     "§7 joint statement: both cards' week and dates read, options without current week, preview, joint notice BEFORE 'Onaylıyor musunuz?', change once"),
+    ("b2_due_passed", "95004361", "2026-10-20T10:30:00+03:00", ["Merhaba", "Borcumu öğrenmek istiyorum.", "Teşekkürler."],
+     "§4.10 after the due date: say it has passed, then the total debt (full currency names)"),
+    ("b2_due_today", "95004361", "2026-10-15T10:30:00+03:00", ["Merhaba", "Borcumu öğrenmek istiyorum.", "Teşekkürler."],
+     "§4.8 due date today: 'Borçlarınız için son ödeme tarihiniz bugündür.'"),
+    ("b2_non_turkish", "95004361", NOW, ["Hello", "Hello, I want to know my credit card balance."],
+     "§8.4 not Turkish: 'Sizi ana menüye aktarıyorum.'"),
+    ("b2_pin_volunteered", "95004361", NOW, ["Merhaba", "Şifrem 1234, borcumu söyler misin?", "Teşekkürler."],
+     "§8.6: the PIN is not used or repeated, a reminder that no password is ever asked, then the normal reading"),
+    ("b2_dispute", "95004361", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Bu borç yanlış, ben bunu ödedim."],
+     "§8.3 dispute: 'Bu konuda size müşteri temsilcimiz yardımcı olacak, sizi aktarıyorum.'"),
+    ("b2_pay", "95004361", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Borcumu ödemek istiyorum."],
+     "§5.3/8.3 pay: 'Borç ödeme işleminiz için sizi müşteri temsilcimize aktarıyorum.'"),
+    ("b2_current_week_pick", "96158684", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Ekstre tarihimi değiştirmek istiyorum.", "İkinci hafta olsun.", "Hayır."],
+     "§7: the current week is picked: tell them nothing needs changing (and/or options again); then no change, main menu"),
+    ("b2_three_tries", "97526380", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Bilmiyorum.", "Hatırlamıyorum.", "Hiç fikrim yok."],
+     "§8.1 three unusable answers to the card question: 'Size şu anda yardımcı olamıyorum. Sizi ana menüye aktarıyorum.'"),
+    ("b2_switch_transaction", "96158684", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Ekstre tarihimi değiştirmek istiyorum.", "Aslında kredi limitimi öğrenmek istiyorum."],
+     "§8.4 another transaction mid-flow: leave it, out-of-scope question (9 Oct) or main menu"),
+    ("b2_repeat", "95004361", NOW, ["Merhaba", "Borcumu öğrenmek istiyorum.", "Tekrar eder misiniz?", "Teşekkürler."],
+     "§8.1 repeat is not a try: the same reading again, then main menu"),
+]
+
 
 def run(workflow_id, names):
-    for name, cust, now, turns, expect in PROBES:
+    sets = {"1": PROBES, "2": PROBES2, "all": PROBES + PROBES2}
+    chosen = sets.get(names[0], None) if names else PROBES
+    if chosen is not None and names: names = names[1:]
+    for name, cust, now, turns, expect in (chosen if chosen is not None else PROBES + PROBES2):
         if names and name not in names: continue
         print(f"\n===== {name}  customer={cust} now={now}\n  EXPECT: {expect}")
         cid = None
