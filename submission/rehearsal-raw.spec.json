@@ -1,0 +1,530 @@
+{
+ "customer_kind": "business",
+ "call_variables": {
+  "customer_id": "customer_id",
+  "now": "now",
+  "others": [
+   "company_name",
+   "contact_name"
+  ]
+ },
+ "opening": {
+  "sentence": "Hello, this is the virtual assistant of Northwind Credit Union, and this call may be recorded.",
+  "ask_for_customer": "May I speak with {{contact_name}}?",
+  "confirmation_counts_as": [
+   "yes",
+   "speaking",
+   "that's me",
+   "the contact giving their own name"
+  ],
+  "not_confirmation": [
+   "hello",
+   "go on",
+   "who is calling"
+  ],
+  "max_asks": 2,
+  "answer_questions_first": true,
+  "unclear": {
+   "outcome": "no_contact",
+   "reason": "unclear"
+  },
+  "robot_reply": "I am Northwind Credit Union's virtual assistant.",
+  "forbidden_before_verification": [
+   "collections",
+   "overdue",
+   "arrears",
+   "payment",
+   "the company's accounts",
+   "any product name"
+  ]
+ },
+ "identity": {
+  "questions": [
+   {
+    "field": "company_number",
+    "ask": "the company registration number",
+    "answer_format": "digits",
+    "digits_len": 8,
+    "hints": {}
+   },
+   {
+    "field": "founded_year",
+    "ask": "the year the company was founded",
+    "answer_format": "year",
+    "digits_len": 0,
+    "hints": {}
+   },
+   {
+    "field": "postcode",
+    "ask": "the postcode of the registered address",
+    "answer_format": "alnum",
+    "digits_len": 0,
+    "hints": {}
+   }
+  ],
+  "one_at_a_time": true,
+  "max_wrong_total": 4,
+  "retry_same_question": true,
+  "no_debt_before_verified": true,
+  "failed": {
+   "say": "I am sorry, I could not verify your details. Please contact the member service line or visit a branch.",
+   "outcome": {
+    "outcome": "unverified",
+    "reason": "failed"
+   }
+  },
+  "declined": {
+   "explain_once": "These questions protect the company's accounts.",
+   "max_refusals": 2,
+   "also_counts": [
+    "asking what the call is about instead of answering"
+   ],
+   "outcome": {
+    "outcome": "unverified",
+    "reason": "refused_check"
+   }
+  }
+ },
+ "calendar": {
+  "business_weekdays": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "holidays": [
+   "2026-10-19",
+   "2026-11-05",
+   "2026-12-24",
+   "2026-12-26",
+   "2026-12-31"
+  ],
+  "next_weekday_means": "following_calendar_week"
+ },
+ "bands": [
+  {
+   "name": "fresh",
+   "days_late_min": 1,
+   "days_late_max": 10,
+   "deadline_kind": "business_days_after_today",
+   "deadline_n": 15,
+   "deadline_text": "",
+   "persuasion_attempts": 2
+  },
+  {
+   "name": "early",
+   "days_late_min": 11,
+   "days_late_max": 30,
+   "deadline_kind": "business_days_after_today",
+   "deadline_n": 10,
+   "deadline_text": "",
+   "persuasion_attempts": 2
+  },
+  {
+   "name": "late",
+   "days_late_min": 31,
+   "days_late_max": 60,
+   "deadline_kind": "business_days_after_today",
+   "deadline_n": 6,
+   "deadline_text": "",
+   "persuasion_attempts": 1
+  },
+  {
+   "name": "severe",
+   "days_late_min": 61,
+   "days_late_max": 90,
+   "deadline_kind": "calendar_days_after_today",
+   "deadline_n": 2,
+   "deadline_text": "",
+   "persuasion_attempts": 1
+  }
+ ],
+ "debt_statement": {
+  "intro": "I am calling from the business collections team about overdue payments.",
+  "mention": [
+   "past_due",
+   "days_late"
+  ],
+  "one_sentence_each": true,
+  "state_all_before_asking": true,
+  "product_wording": {
+   "business_card": "business card ending {card_last4}",
+   "equipment_loan": "equipment loan",
+   "overdraft": "overdraft facility"
+  }
+ },
+ "amount_rules": {
+  "floor_kind": "fraction_of_full",
+  "floor_fraction": 0.4,
+  "floor_fixed": 0,
+  "floor_by_type": {},
+  "ask_full_first": true,
+  "never_ask_how_much": true,
+  "between_floor_and_full": "accept",
+  "too_much_offer_floor_once": true,
+  "too_much_say": "The remaining balance stays overdue.",
+  "refusing_floor_is_flat_refusal": true,
+  "below_floor_offer_floor_once": true,
+  "below_floor_say": "I am sorry, I cannot record that amount."
+ },
+ "date_rules": {
+  "earliest": "today",
+  "must_be_business_day": true,
+  "non_business_day": "offer_next_business_day",
+  "vague_ask_exact_once": true,
+  "vague_then": "propose_deadline",
+  "after_deadline": "offer_deadline",
+  "after_deadline_refusal_is_flat_refusal": true
+ },
+ "persuasion": {
+  "first_ask": "Can you pay this today?",
+  "attempts": [
+   {
+    "n": 1,
+    "amount": "current_ask",
+    "date_kind": "next_business_day",
+    "date_text": "",
+    "bands": []
+   },
+   {
+    "n": 2,
+    "amount": "floor",
+    "date_kind": "deadline",
+    "date_text": "",
+    "bands": [
+     "fresh",
+     "early"
+    ]
+   }
+  ],
+  "flat_refusal_definition": "A flat refusal or a non-answer uses one persuasion attempt of that product. Refusing the deadline, refusing the floor, or not accepting the floor after a below-floor amount is a flat refusal.",
+  "proposal_is_never_refusal": true,
+  "never_repeat_refused_offer": true,
+  "exhausted": {
+   "outcome": "declined",
+   "reason": "refusal"
+  }
+ },
+ "confirmation": {
+  "read_back": [
+   "product",
+   "amount",
+   "date"
+  ],
+  "read_all_together": true,
+  "question": "Do you confirm?",
+  "only_after_clear_yes": true,
+  "one_confirmation": true,
+  "change_revalidate": true,
+  "one_promise_per_product": true,
+  "cannot_change_say": "A recorded commitment cannot be changed or cancelled during this call; you can change it through the member service line.",
+  "recorded_only_after_ok": true,
+  "retries_on_failure": 1,
+  "failure_say": "I am sorry, the commitment could not be recorded.",
+  "failure_note_reason": "system_failure",
+  "failure_outcome": {
+   "outcome": "declined",
+   "reason": "system_failure"
+  },
+  "after_recorded_sentences": [
+   "A confirmation will be sent to your registered email address."
+  ]
+ },
+ "multi_product": {
+  "max_products": 3,
+  "ask_all_today_first": true,
+  "do_not_ask_today_again": true,
+  "attempts_per_product": true,
+  "one_date_past_a_deadline": "that_product_on_its_own_deadline",
+  "dispute_or_paid_does_not_end_call": true,
+  "notes_enabled": true,
+  "notes_reason_map": {
+   "refused": "refusal",
+   "hardship": "hardship",
+   "dispute": "disputed",
+   "paid": "paid_elsewhere",
+   "service_error": "system_failure"
+  },
+  "notes_none_on_transfer": true,
+  "restructuring_recorded_stay": true
+ },
+ "hardship": {
+  "enabled": true,
+  "triggers": [
+   "illness",
+   "a death",
+   "the business losing its main source of income"
+  ],
+  "sympathy": "I am sorry to hear that, and I appreciate you telling me.",
+  "no_persuasion": true,
+  "offer": "to connect the contact with the hardship desk",
+  "accept_queue": "hardship_desk",
+  "accept_outcome": {
+   "outcome": "handed_over",
+   "reason": "hardship_desk"
+  },
+  "decline_note_reason": "hardship",
+  "decline_outcome": {
+   "outcome": "declined",
+   "reason": "hardship"
+  },
+  "record_if_customer_names_date_or_amount": true
+ },
+ "situations": {
+  "already_paid": {
+   "say": "Payments can take up to two business days to show.",
+   "note_reason": "paid_elsewhere",
+   "outcome": {
+    "outcome": "settled",
+    "reason": ""
+   }
+  },
+  "dispute": {
+   "includes": [
+    "not our debt",
+    "we never had this product",
+    "a claim that the product was closed or paid off in the past"
+   ],
+   "do_not_argue": true,
+   "note_reason": "disputed",
+   "outcome": {
+    "outcome": "declined",
+    "reason": "disputed"
+   }
+  },
+  "plan_request": {
+   "do_not_describe": true,
+   "queue": "restructure",
+   "outcome": {
+    "outcome": "handed_over",
+    "reason": "restructure"
+   }
+  },
+  "human_request": {
+   "ask_can_i_help_first": 1,
+   "queue": "agent",
+   "outcome": {
+    "outcome": "handed_over",
+    "reason": "agent"
+   }
+  },
+  "dont_want_to_talk": {
+   "times": 2,
+   "after_verified": {
+    "outcome": "declined",
+    "reason": "refusal"
+   },
+   "before_verified": {
+    "outcome": "unverified",
+    "reason": "refused_check"
+   }
+  },
+  "scam_question": {
+   "say": "You can verify this call on the number printed on your statement."
+  },
+  "unknown_question": {
+   "say": "I am sorry, I do not have that information."
+  },
+  "transfer_after_promise": "transferred_with_that_reason",
+  "custom": [
+   {
+    "name": "business_closed",
+    "when": "The person says the business has closed down or stopped trading.",
+    "applies": "anytime",
+    "action": "close",
+    "say": "Thank you for letting us know.",
+    "note_reason": "",
+    "transfer_queue": "",
+    "outcome": {
+     "outcome": "no_contact",
+     "reason": "closed_business"
+    }
+   }
+  ]
+ },
+ "third_party": {
+  "enabled": true,
+  "say_only_opening": true,
+  "relative_may_not_pay_or_answer": true,
+  "ask_when_reachable": true,
+  "callback": {
+   "enabled": true,
+   "window_start": "09:00",
+   "window_end": "17:30",
+   "inclusive": true,
+   "days_kind": "within_n_business_days",
+   "days_n": 3,
+   "days_text": "on today, if today is one of our working days, or within the next three working days, and of course later than the time of the call",
+   "after_now": true,
+   "retries_if_outside": 1,
+   "scheduled": {
+    "outcome": "no_contact",
+    "reason": "callback_booked"
+   },
+   "not_scheduled": {
+    "outcome": "no_contact",
+    "reason": "callback_refused"
+   }
+  },
+  "wrong_number": {
+   "enabled": true,
+   "outcome": {
+    "outcome": "no_contact",
+    "reason": "wrong_number"
+   }
+  },
+  "deceased": {
+   "enabled": false,
+   "sentence": "",
+   "ask_nothing_else": false,
+   "outcome": {
+    "outcome": "",
+    "reason": ""
+   }
+  }
+ },
+ "forbidden_offers": [
+  "a discount",
+  "a waiver",
+  "a fee reversal",
+  "a payment plan",
+  "any term not in this policy"
+ ],
+ "mandatory_sentences": [
+  {
+   "text": "May I speak with {{contact_name}}?",
+   "when": "opening",
+   "when_text": ""
+  },
+  {
+   "text": "You can verify this call on the number printed on your statement.",
+   "when": "custom",
+   "when_text": "Some people will ask whether the call is a scam."
+  },
+  {
+   "text": "Thank you for letting us know.",
+   "when": "custom",
+   "when_text": "someone tells us the business has closed down or stopped trading"
+  },
+  {
+   "text": "I am sorry to hear that, and I appreciate you telling me.",
+   "when": "hardship",
+   "when_text": ""
+  },
+  {
+   "text": "Payments can take up to two business days to show.",
+   "when": "already_paid",
+   "when_text": ""
+  },
+  {
+   "text": "Do you confirm?",
+   "when": "custom",
+   "when_text": "After reading back all agreed commitments together"
+  },
+  {
+   "text": "A confirmation will be sent to your registered email address.",
+   "when": "after_promise_recorded",
+   "when_text": ""
+  }
+ ],
+ "closing": {
+  "goodbye_before_close": true,
+  "farewell_text": "",
+  "any_promise_outcome": "commitment",
+  "all_paid_outcome": "settled",
+  "else_rule": "first_non_paid_note_reason",
+  "outcomes": [
+   {
+    "outcome": "commitment",
+    "reasons": []
+   },
+   {
+    "outcome": "settled",
+    "reasons": []
+   },
+   {
+    "outcome": "handed_over",
+    "reasons": [
+     "hardship_desk",
+     "restructure",
+     "agent"
+    ]
+   },
+   {
+    "outcome": "declined",
+    "reasons": [
+     "refusal",
+     "hardship",
+     "disputed",
+     "system_failure"
+    ]
+   },
+   {
+    "outcome": "unverified",
+    "reasons": [
+     "failed",
+     "refused_check"
+    ]
+   },
+   {
+    "outcome": "no_contact",
+    "reasons": [
+     "callback_booked",
+     "callback_refused",
+     "wrong_number",
+     "closed_business",
+     "unclear"
+    ]
+   }
+  ]
+ },
+ "meta": {
+  "bank_name": "Northwind Credit Union",
+  "currency_word": "",
+  "notes": "The opening sentence wording is not given verbatim: \"The agent introduces itself as the virtual assistant of Northwind Credit Union and says the call may be recorded, all in the first sentence\".\nThe agent should address the contact by their full name ({{contact_name}}).\nIf the contact gives a company number that does not have eight digits, the caller asks again without checking it; this is not a wrong answer.\nIf the contact gives two digits for the year founded, the caller asks for the full year.\nAn answer the system rejects as unreadable is not a wrong answer and is asked again.\nThe floor is 40 percent of the overdue amount, rounded to the nearest cent, half a cent rounding up.\nAbove the full overdue amount, the caller says a commitment covers the overdue amount only and offers the full overdue amount.\nIf the contact names a Sunday or a holiday that is not after the deadline, the caller offers the next business day.\n\"The Nth business day after today\" never counts today, even when today is a business day.\n\"this <weekday>\" means the one in the current week.\nAttempt 1: the full overdue amount on the next business day after today, or the floor on that day if the contact has already said the full amount is too much for this product.\nPayment plan request: commitments agreed but not yet recorded are not recorded.\nBusiness closed: no notes on those calls; if a commitment was already recorded before they told us, it still ends as a commitment.\nNo notes are written on a call that is transferred (for any reason, before or after the transfer).\nOnce the account has been looked up, every product that ends without a recorded commitment receives exactly one note, written before the call is closed.\nThe human-request rule applies at any stage of the call, before or after the security questions.\nThird parties get no security questions, even if they offer to pay.\nProduct type keys (business_card, equipment_loan, overdraft) and field names (card_last4, past_due, days_late) are assumed; the brief names products only as \"business card ending\" + last four card digits, \"equipment loan\" and \"overdraft facility\", with the overdue amount and the days overdue.\nThe brief gives no rule for a deceased customer.",
+  "source_quotes": {
+   "opening.sentence": "The agent introduces itself as the virtual assistant of Northwind Credit Union and says the call may be recorded, all in the first sentence, then asks for our contact by name, exactly \"May I speak with {{contact_name}}?\".",
+   "opening.robot_reply": "If anyone asks whether they are talking to a robot or an AI, the agent says it is Northwind Credit Union's virtual assistant and carries on.",
+   "opening.confirmation_counts_as": "Only \"yes\", \"speaking\", \"that's me\" or the contact giving their own name confirms that the contact is on the line.",
+   "opening.max_asks": "If it is still not clear after the second ask, the call is recorded as not reached for an unclear line.",
+   "opening.forbidden_before_verification": "Before identity is verified, the caller must not use the words \"collections\", \"overdue\", \"arrears\" or \"payment\", must not refer to the company's accounts and must not name any product.",
+   "identity.questions": "Three security questions are asked, one at a time, in this order: (a) the company registration number; (b) the year the company was founded; (c) the postcode of the registered address.",
+   "identity.max_wrong_total": "The check ends after four wrong answers in total, across all three questions. The system gives no hints and every wrong answer counts.",
+   "identity.failed": "After four wrong answers the caller does not disclose the debt, directs the contact to the member service line or a branch, and records the call as a failed verification.",
+   "identity.declined": "If the contact will not answer, the caller explains once that the questions protect the company's accounts. ... A second refusal, or a second such question, ends the call.",
+   "calendar.business_weekdays": "Business days are Monday to Saturday, excluding credit union holidays.",
+   "calendar.holidays": "The list in clause 4.2 now reads: 2026-10-19, 2026-11-05, 2026-12-24, 2026-12-26, 2026-12-31.",
+   "calendar.next_weekday_means": "\"Next <weekday>\" means that weekday in the following calendar week",
+   "bands": "1 to 10 fresh 15th business day after today 2; 11 to 30 early 10th business day after today 2; 31 to 60 late 5th business day after today 1; 61 to 90 severe today plus 2 calendar days, moved forward to the next business day if it is not one 1",
+   "bands.late": "The deadline for the late band (31 to 60 days overdue) is changed from the 5th business day after today to the 6th business day after today.",
+   "amount_rules.floor_fraction": "On money: the lowest we accept on any product is 40 percent of what is overdue.",
+   "amount_rules.too_much": "If the contact says the full amount is too much, the caller offers the floor once and says that the remaining balance stays overdue. Refusing the floor is a flat refusal.",
+   "amount_rules.below_floor": "Below the floor, the caller says it cannot be recorded and offers the floor once; not accepting it is a flat refusal.",
+   "date_rules": "A commitment date is today or later, a business day, and not after that product's deadline.",
+   "date_rules.vague": "If the contact gives only a vague period, the caller asks once for the exact day; if none is given, the caller proposes the deadline.",
+   "date_rules.after_deadline": "If the contact asks for a date after the deadline, the caller says the deadline is the latest date it can record and offers it. Refusing the deadline is a flat refusal.",
+   "debt_statement.intro": "After verification the caller says it is calling from the business collections team about overdue payments, then states every overdue product, one sentence per product, in the order the system lists them, before asking for anything.",
+   "persuasion.first_ask": "for one product, \"Can you pay this today?\"; for several, whether all of them can be paid today.",
+   "persuasion.attempts": "Attempt 1: the full overdue amount on the next business day after today, or the floor on that day if the contact has already said the full amount is too much for this product. Attempt 2, fresh and early bands only: the floor on that product's deadline.",
+   "confirmation.question": "All agreed commitments are read back together (product, amount, date), followed by \"Do you confirm?\".",
+   "confirmation.retries_on_failure": "A failed recording is tried once more. If it fails again, the caller says it could not be recorded, keeps any commitments already recorded, and notes that product as a system failure.",
+   "confirmation.after_recorded_sentences": "After at least one commitment is recorded, the caller says once: \"A confirmation will be sent to your registered email address.\"",
+   "hardship.sympathy": "the caller says exactly \"I am sorry to hear that, and I appreciate you telling me.\", makes no persuasion attempt on any remaining product, and offers to connect the contact with the hardship desk.",
+   "situations.already_paid.say": "The caller says \"Payments can take up to two business days to show.\", takes no commitment for that product, notes it as paid elsewhere and continues with the other products.",
+   "situations.scam_question.say": "The agent should say \"You can verify this call on the number printed on your statement.\" and carry on.",
+   "situations.human_request": "If the contact asks to speak to a person, the agent should ask once whether it can help first. If they still want a person, put them through to the general agent queue.",
+   "situations.plan_request": "A request for a payment plan, a restructure or lower repayments is not discussed; the call is transferred to the restructure queue.",
+   "situations.dont_want_to_talk": "If the contact says twice that they do not want to talk, the caller stops.",
+   "situations.custom.business_closed": "The agent says \"Thank you for letting us know.\", asks nothing more, and ends the call.",
+   "third_party.callback": "We staff callbacks from 09:00 to 17:30 (both ends fine), and we want them on today, if today is one of our working days, or within the next three working days, and of course later than the time of the call.",
+   "third_party.callback.retries_if_outside": "If the person offers something outside that, the agent asks once for another time; if the second answer is also outside, or they will not give a time, we do not book.",
+   "third_party.say_only_opening": "They get the opening sentence and nothing more: no reason for the call, nothing about the accounts, no security questions, even if they offer to pay.",
+   "forbidden_offers": "The caller never offers a discount, a waiver, a fee reversal, a payment plan or any term not in this policy.",
+   "closing.else_rule": "otherwise the result is declined, with the reason of the first product, in system order, whose note is not \"paid elsewhere\".",
+   "closing.goodbye_before_close": "The caller thanks the contact and says goodbye before closing.",
+   "multi_product.max_products": "who have fallen behind on between one and three products"
+  }
+ }
+}

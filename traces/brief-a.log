@@ -1,0 +1,185 @@
+2026-10-10T22:56:15Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-10T22:56:15Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-10T22:56:15Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-10T22:56:15Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-10T22:56:15Z COMPILE nodes=34 tools=7 lint=ok warnings=0
+2026-10-10T22:56:15Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=446041 bytes
+2026-10-10T22:56:16Z FREYA dryrun ok 1.0s
+2026-10-10T22:56:18Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=1 nodes=34 tools=7
+2026-10-10T22:56:19Z EXPORT submission/brief-a.workflow.json nodes=34 tools=7
+2026-10-10T22:56:19Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-10T22:56:19Z END status=ok elapsed_s=3 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-10T23:06:25Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-10T23:06:25Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-10T23:06:25Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-10T23:06:25Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-10T23:06:25Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-10T23:06:25Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=485101 bytes
+2026-10-10T23:06:26Z FREYA dryrun ok 1.2s
+2026-10-10T23:06:29Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=2 nodes=35 tools=7
+2026-10-10T23:06:30Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-10T23:06:30Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-10T23:06:30Z END status=ok elapsed_s=5 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-10T23:08:53Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-10T23:08:53Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-10T23:08:53Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-10T23:08:53Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-10T23:08:53Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-10T23:08:53Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=484703 bytes
+2026-10-10T23:08:54Z FREYA dryrun ok 0.9s
+2026-10-10T23:08:57Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=3 nodes=35 tools=7
+2026-10-10T23:08:58Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-10T23:08:58Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-10T23:08:58Z END status=ok elapsed_s=5 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-10T23:41:15Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-10T23:41:15Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-10T23:41:15Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-10T23:41:15Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-10T23:41:15Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-10T23:41:15Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=495554 bytes
+2026-10-10T23:41:16Z FREYA dryrun ok 1.2s
+2026-10-10T23:41:19Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=4 nodes=35 tools=7
+2026-10-10T23:41:19Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-10T23:41:19Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-10T23:41:19Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-10T23:41:19Z END status=ok elapsed_s=5 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-10T23:46:17Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-10T23:46:17Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-10T23:46:17Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-10T23:46:17Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-10T23:46:17Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-10T23:46:17Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=499322 bytes
+2026-10-10T23:46:18Z FREYA dryrun ok 1.2s
+2026-10-10T23:46:22Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=5 nodes=35 tools=7
+2026-10-10T23:46:23Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-10T23:46:23Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-10T23:46:23Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-10T23:46:23Z END status=ok elapsed_s=5 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-10T23:48:36Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-10T23:48:36Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-10T23:48:36Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-10T23:48:36Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-10T23:48:36Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-10T23:48:36Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=499322 bytes
+2026-10-10T23:48:37Z FREYA dryrun ok 1.2s
+2026-10-10T23:48:40Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=5 nodes=35 tools=7
+2026-10-10T23:48:41Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-10T23:48:41Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-10T23:48:41Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-10T23:49:19Z TEST chat/happy_path_today FAIL RuntimeError: POST /api/v2/chat/message -> 504: error code: 504
+2026-10-10T23:50:11Z TEST chat/robot_question_then_wrong_answers FAIL RuntimeError: POST /api/v2/chat/message -> 504: error code: 504
+2026-10-10T23:50:52Z TEST chat/third_party_callback FAIL RuntimeError: POST /api/v2/chat/message -> 504: error code: 504
+2026-10-10T23:50:52Z TEST chat/total FAIL 0/3 scenarios
+2026-10-10T23:50:52Z END status=ok elapsed_s=136 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T00:05:27Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T00:05:27Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T00:05:27Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T00:05:27Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T00:05:27Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T00:05:27Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=504085 bytes
+2026-10-11T00:05:29Z FREYA dryrun ok 1.2s
+2026-10-11T00:05:32Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=6 nodes=35 tools=7
+2026-10-11T00:05:33Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T00:05:33Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T00:05:33Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T00:07:51Z TEST chat/happy_path_today INCONCLUSIVE POST /api/v2/chat/message -> 504: error code: 504
+2026-10-11T00:10:04Z TEST chat/robot_question_then_wrong_answers INCONCLUSIVE POST /api/v2/chat/message -> 504: error code: 504
+2026-10-11T00:10:04Z TEST chat/third_party_callback SKIP chat route unavailable (two scenarios in a row could not start)
+2026-10-11T00:10:04Z TEST chat/total FAIL 0/3 scenarios passed, 2 inconclusive (platform 5xx)
+2026-10-11T00:10:04Z END status=ok elapsed_s=276 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T00:37:47Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T00:37:47Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T00:37:47Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T00:37:47Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T00:37:47Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T00:37:47Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=507885 bytes
+2026-10-11T00:37:49Z FREYA dryrun ok 2.3s
+2026-10-11T00:37:53Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=7 nodes=35 tools=7
+2026-10-11T00:37:54Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T00:37:54Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T00:37:54Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T00:37:54Z END status=ok elapsed_s=7 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T00:56:09Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T00:56:09Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T00:56:09Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T00:56:09Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T00:56:09Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T00:56:09Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=511140 bytes
+2026-10-11T00:56:11Z FREYA dryrun ok 1.2s
+2026-10-11T00:56:16Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=8 nodes=35 tools=7
+2026-10-11T00:56:16Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T00:56:17Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T00:56:17Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T00:56:17Z END status=ok elapsed_s=7 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T01:04:43Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T01:04:43Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T01:04:43Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T01:04:43Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T01:04:43Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T01:04:43Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=515470 bytes
+2026-10-11T01:04:44Z FREYA dryrun ok 1.1s
+2026-10-11T01:04:49Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=9 nodes=35 tools=7
+2026-10-11T01:04:49Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T01:04:49Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T01:04:49Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T01:04:49Z END status=ok elapsed_s=6 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T01:10:48Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T01:10:48Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T01:10:48Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T01:10:48Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T01:10:48Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T01:10:48Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=515628 bytes
+2026-10-11T01:10:49Z FREYA dryrun ok 1.3s
+2026-10-11T01:10:53Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=10 nodes=35 tools=7
+2026-10-11T01:10:54Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T01:10:54Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T01:10:54Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T01:10:54Z END status=ok elapsed_s=6 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T01:56:48Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T01:56:48Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T01:56:48Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T01:56:48Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T01:56:49Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T01:56:49Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=517016 bytes
+2026-10-11T01:56:51Z FREYA dryrun ok 2.0s
+2026-10-11T01:56:54Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=11 nodes=35 tools=7
+2026-10-11T01:56:55Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T01:56:55Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T01:56:55Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T01:56:55Z END status=ok elapsed_s=6 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T02:19:02Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T02:19:02Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T02:19:02Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T02:19:02Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T02:19:02Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T02:19:02Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=517744 bytes
+2026-10-11T02:19:04Z FREYA dryrun ok 1.2s
+2026-10-11T02:19:07Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=12 nodes=35 tools=7
+2026-10-11T02:19:08Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T02:19:08Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T02:19:08Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T02:19:08Z END status=ok elapsed_s=6 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T02:32:00Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T02:32:00Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T02:32:00Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T02:32:00Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T02:32:00Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T02:32:00Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=517908 bytes
+2026-10-11T02:32:01Z FREYA dryrun ok 1.4s
+2026-10-11T02:32:06Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=13 nodes=35 tools=7
+2026-10-11T02:32:07Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T02:32:07Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T02:32:07Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T02:32:07Z END status=ok elapsed_s=7 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
+2026-10-11T02:44:13Z START brief=briefs/brief-a.md tools=tools/openapi.json slot=brief-a budget_s=1500 builder_model=claude-opus-5-5 cwd=/Users/omerf/Desktop/hackathonfreya
+2026-10-11T02:44:13Z INFO tool api: 7 tools ['verify_identity', 'get_account', 'create_promise', 'add_note', 'schedule_callback', 'transfer_to_agent', 'close_call'] base=https://freya-bank-mock.freyavoice.workers.dev/v1
+2026-10-11T02:44:13Z INFO spec loaded from builder/tests/fixtures/spec-brief-a.json (no model call)
+2026-10-11T02:44:13Z SPEC ok required_missing=[] defaulted=0 problems=0
+2026-10-11T02:44:13Z COMPILE nodes=35 tools=7 lint=ok warnings=0
+2026-10-11T02:44:13Z INFO workflow written /Users/omerf/Desktop/hackathonfreya/out/brief-a/workflow.json size=517947 bytes
+2026-10-11T02:44:15Z FREYA dryrun ok 1.5s
+2026-10-11T02:44:19Z FREYA saved slot=brief-a workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300 version=14 nodes=35 tools=7
+2026-10-11T02:44:19Z EXPORT submission/brief-a.workflow.json nodes=35 tools=7
+2026-10-11T02:44:19Z TEST offline/code_nodes PASS 7/7 call dates
+2026-10-11T02:44:19Z TEST offline/answer_formats PASS spoken answers normalise
+2026-10-11T02:44:19Z END status=ok elapsed_s=6 model_calls=0 cost_usd=0.000 workflow_id=d9fd7e40-2ed0-4b8e-abf8-e845baaee9c2 agent_id=8d6e9d6e-22ae-4e8f-98e4-e2d032be1300
