@@ -360,7 +360,7 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Status (Sunday 14:35 UTC, 17:35 TR, frozen)
+## 14. Status (practice round, frozen Sunday 14:35 UTC; the final is in section 17)
 
 Done:
 - Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25–0.45, ~50–65 s),
@@ -446,3 +446,6 @@ What we built in the three hours (all in this repo):
   caller) but drifted elsewhere: it read the whole statement when only the minimum was asked, dropped the no-password
   reminder, added the offer after the no-debt and new-card readings, and sent the spouse case to the login step
   instead of the main menu. Run 3 stays the submitted agent; run 5's replay is `traces/final-run5.probes.txt`.
+
+Submitted by e-mail at 19:30 UTC on 11 October 2026: `submission.json` (commit `b52abfe`), `submission/final.workflow.json`
+and `traces/final.session.jsonl`. The Worker stays deployed and the platform agent untouched until the results.
