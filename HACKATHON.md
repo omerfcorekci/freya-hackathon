@@ -441,3 +441,8 @@ What we built in the three hours (all in this repo):
   `on_enter` of type `llm` emits tool-call text instead of the sentence. The skill now forbids both; the submitted
   agent (run 3) never used them. Replays of the case's example scenarios and of the other rules of the analysis
   document against the submitted agent are in `traces/final.probes.txt` and `traces/final.probes2.txt`.
+  A fifth run (slot `final5`, from scratch with every earlier output hidden from the design step, skill rule "a tone
+  variable never triggers on insistence") fixed the one soft spot of run 3 (a calming sentence on a merely insistent
+  caller) but drifted elsewhere: it read the whole statement when only the minimum was asked, dropped the no-password
+  reminder, added the offer after the no-debt and new-card readings, and sent the spouse case to the login step
+  instead of the main menu. Run 3 stays the submitted agent; run 5's replay is `traces/final-run5.probes.txt`.
