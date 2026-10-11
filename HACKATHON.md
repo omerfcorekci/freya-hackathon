@@ -360,33 +360,26 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Status (Sunday 02:40 UTC, 05:40 TR)
+## 14. Status (Sunday 12:55 UTC, 15:55 TR)
 
-Done tonight:
+Done:
 - Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25–0.45, ~50–65 s),
-  compiles, lints, dry-runs, saves in place, exports, self-tests, writes the trace. Architecture in `builder/README.md`.
-  A fresh `git clone` ran the hidden-brief command end to end in 50 s on the raw rehearsal brief.
-- Practice cases (details in `traces/practice-results.md`): plain style **A 10/10 and B 3/3 in every repeated run**
-  (A ×3, B ×3 on v10; B ×2 and A ×1 on v12). Speaking styles: pieces, corrects, asks_back, in_words 10/10 (A) and 3/3 (B);
-  talkative 9–10/10 (A) and 3/3 (B) after the fixes; the remaining talkative misses come from the platform cutting the
-  customer's sentences and from judges reading literally. Median agent turn 2–5 s.
-- Rehearsal briefs (another bank, business customers, 3 identity questions, 4 bands, Saturday business day, other
-  outcome names, raw mail + policy + memo + code list): spec extraction correct including the memo's overrides and a
-  custom situation; compiled workflows accepted by the platform's dry run with the current compiler.
-- Tooling: `builder/batch_tests.py` (reps and styles), `builder/run_cases_safe.py` and `builder/watchdog.py` (nothing
-  runs for ever: stale scorer runs are killed and hung simulations cancelled), `builder/leak_check.py`, `SUBMISSION.md`.
+  compiles, lints, dry-runs, saves in place (with retries), exports (even when the platform is down), self-tests, writes
+  the trace. Architecture in `builder/README.md`. Fresh `git clone` dry runs pass.
+- Practice cases (`traces/practice-results.md`): plain style A 10/10 and B 3/3 in every repeated run over the night;
+  all speaking styles pass except that `talkative` fluctuates (the platform cuts the customer's sentences).
+- Generalisation: spec extraction is stable across three runs on the raw-material rehearsal brief; Brief C (the kit's
+  API, 30 different rules) was extracted correctly and the compiled agent followed Brief C's rules in 9/9 live calls.
+- Unit tests: 86 (`python3 -m unittest discover builder/tests`).
 
-Known limits:
-- The platform cuts long customer messages mid-sentence (talkative style) and sometimes leaves a simulation hanging or
-  never delivers the judge's analysis. The agent detects cut-off turns and asks again; the tooling cancels hung runs.
-- The chat route (`/api/v2/chat/message`) returned 503/504 for most of the night; the chat self-test marks that
-  inconclusive. For hidden briefs without practice cases the live test is only this route.
-- Judges read literally: the opening says "kept on record" instead of "recorded"; re-asks never restate an offer.
+Platform on Sunday morning: 502/503/504 for long stretches, judge analyses missing ("inconclusive"/"error"), simulations
+left hanging. Everything that talks to the platform now retries with back-off, cancels hung simulations and never blocks
+the export. If the platform is like this at 17:00 UTC: run the command anyway; the trace shows the retries and the
+export is written from the compiled workflow; rerun the same command when the platform answers to get a platform save.
 
-Open for the morning:
-- [ ] Read `results/batch-final-v13.log` (A and B, plain and talkative, started 02:40 UTC).
+Open:
 - [ ] YC registration and team name; the submission email address from the kit email; GitHub repo access for the organisers; push.
-- [ ] Freeze by 15:30 UTC: `git status` clean, `python3 -m unittest discover builder/tests` green, one last fresh-clone dry run (SUBMISSION.md).
+- [ ] Freeze at 15:30 UTC: `git status` clean, unit tests green. After 17:00 UTC only crash fixes, one commit each.
 
 ## 15. Sunday
 
