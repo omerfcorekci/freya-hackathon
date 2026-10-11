@@ -12,7 +12,7 @@ sys.path.insert(0, ROOT)
 
 
 def run_one(agent, letter, reps, style, only):
-    cmd = [sys.executable, os.path.join(ROOT, "builder", "run_cases_safe.py"), agent, "--brief", letter, "--reps", str(reps), "--limit-seconds", str(600 * reps + 300)]
+    cmd = [sys.executable, os.path.join(ROOT, "builder", "run_cases_safe.py"), agent, "--brief", letter, "--reps", str(reps), "--limit-seconds", str(1500 * reps + 600)]   # the platform's judge can take 20 minutes per run when it is slow
     if style: cmd += ["--style", style]
     if only: cmd += ["--only", only]
     t0 = time.time()
