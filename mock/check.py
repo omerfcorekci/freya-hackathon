@@ -9,7 +9,7 @@ import json, sys, urllib.request, urllib.error
 
 
 def call(base, method, path, body=None):
-    req = urllib.request.Request(base.rstrip("/") + path, method=method, headers={"content-type": "application/json"},
+    req = urllib.request.Request(base.rstrip("/") + path, method=method, headers={"content-type": "application/json", "user-agent": "freya-mock-check/1.0"},
                                  data=json.dumps(body).encode() if body is not None else None)
     try:
         with urllib.request.urlopen(req, timeout=20) as r: return r.status, json.loads(r.read().decode() or "null")

@@ -62,7 +62,8 @@ def _counts(wf):
     tools = 0
     for n in nodes.values():
         for act in n.get("pre_actions") or []:
-            if (act.get("function") or {}).get("name") == "api_call": tools += 1
+            fn = act.get("function") or {}
+            if fn.get("name") == "api_call" or "api_call" in str(fn.get("handler", "")) or "url" in ((fn.get("parameters") or {}).get("properties") or {}): tools += 1
         tools += len(n.get("tools") or [])
     return len(nodes), tools
 
@@ -115,7 +116,8 @@ def run(folder, mock_url, slot="final", budget_seconds=1700, model=DEFAULT_MODEL
         for e in index: tr.info(f"  {e['file']} [{e['kind']}] {e['chars']} chars")
         try:
             import urllib.request
-            with urllib.request.urlopen(mock_url + "/health", timeout=15) as r: tr.info(f"mock health {r.status}: {r.read().decode()[:120]}")
+            req = urllib.request.Request(mock_url + "/health", headers={"user-agent": "freya-builder/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as r: tr.info(f"mock health {r.status}: {r.read().decode()[:120]}")
         except Exception as e: tr.warn(f"mock health check failed: {str(e)[:160]}")
         prompt = (f"Use the {SKILL} skill. CASE={folder} TEXT={text_dir} MOCK_URL={mock_url} OUT={out_dir}. "
                   f"Write {out_dir}/workflow.json, {out_dir}/tests.json and {out_dir}/notes.md as the skill says.")
