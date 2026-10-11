@@ -69,7 +69,9 @@ Rules that cost us runs on the practice round, all mandatory:
   api_request) ends with an `always` transition.
 - Extraction: every variable has `min_confidence` (0.5 for enums, 0.6 for free text), a `description` that says
   "from the customer's most recent message only" and lists the enum values. Enum values are plain words. Add a
-  variable for the customer's question kind if they may ask things back. The platform validates every value a code
+  variable for the customer's question kind if they may ask things back. A mood or tone variable triggers only on
+  what the case defines (insults, shouting, complaints about the service), never on mere insistence, impatience or a
+  repeated request, which the flow handles as what they are. The platform validates every value a code
   node writes against the variable's schema: a reset to `""` or `None` of an extracted variable is rejected and the
   old value stays for the next turn (`<node>_response.validation_errors` says "rejected by schema validation"). Give
   every extracted variable a documented value such as `none`, reset to that string in code, and treat it as "not said".
@@ -77,9 +79,15 @@ Rules that cost us runs on the practice round, all mandatory:
   `headers`, `body` with `default` values (never `const`); `{{var}}` placeholders inside defaults; `response_mapping`
   paths start with `data.`; a tool that answered HTTP 500 raises `function_call_error` and the mappings do not run,
   so the next code node must treat missing mapped variables as the error case and say the case's error sentence.
-  This holds for every non-2xx status: a 404 and a 500 look the same to the workflow (no status, no body), so when
-  the case gives different behaviours for "not found" and "technical error" of one service, choose the one the case's
-  documents and test customers make more likely, say so in `notes.md`, and never pretend to know which one happened.
+  This holds for every non-2xx status: a 404 and a 500 look the same to the workflow's variables (no status, no
+  body). When the case gives different behaviours for "not found" and "technical error" of one service, use the one
+  place that can still see the difference: the conversation model. Pattern, only for that service: the api node has
+  `suppress_tool_results: false` (the error text, which contains the service's error code, then reaches the model);
+  on the error route the code node sends the call to a dedicated conversation node whose `on_enter` is `llm` with a
+  short instruction of the form "A tool just failed. If its error text contains <code>, say exactly: <sentence A>.
+  Otherwise say exactly: <sentence B>. Nothing else." and an extraction variable (e.g. `err_kind`, enum of the two
+  cases plus `none`) so that the next code node ends the call the way the case says for each case. Every other
+  sentence stays in code. Say in `notes.md` where this pattern is used.
   Set `max_retries` where the case allows a retry. Only `MOCK_URL` paths.
 - Tool shapes follow the case's service contract exactly (paths, the request envelope and field names, the response
   envelope): do not rename fields and do not rely on a hook to reshape the body; put the contract's envelope in the
