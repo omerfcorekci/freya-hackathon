@@ -219,9 +219,9 @@ class BriefATests(unittest.TestCase):
 
     def test_talkative_nonanswer_then_agrees(self):
         s = self.sim([CC("7740", 365.0, 8, 109.5)]); s.start()
-        self.assertEqual(s.say("other"), "negotiate"); self.assertIn("missed that", s.vars["say"]); self.assertEqual(s.vars["p1_attempts_used"], 0)
-        self.assertEqual(s.say("none"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 0)
-        self.assertEqual(s.say("other"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 1)   # third non-answer uses an attempt
+        for i in range(4):
+            self.assertEqual(s.say("other"), "negotiate"); self.assertIn("missed that", s.vars["say"]); self.assertEqual(s.vars["p1_attempts_used"], 0)
+        self.assertEqual(s.say("other"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 1)   # fifth non-answer uses an attempt
         self.assertEqual(s.say("agrees"), "confirm"); s.confirm(); self.assertEqual(s.promises, [("p1", 365.0, "2026-10-16")])
 
     def test_pieces_date_two_parts(self):
@@ -230,6 +230,16 @@ class BriefATests(unittest.TestCase):
         s = self.sim([CC("6604", 300.0, 4, 90.0)]); s.start()
         self.assertEqual(s.say("vague", date="October"), "negotiate"); self.assertIn("exact day", s.vars["say"])
         self.assertEqual(s.say("proposes", date="30"), "confirm"); self.assertEqual(s.vars["p1_agreed_date"], "2026-10-30")
+
+    def test_reask_repeats_only_the_question(self):
+        s = self.sim([CC("1903", 2125.1, 12, 637.5)]); s.start()
+        s.say("too_much"); self.assertIn("overdue", s.vars["say"])
+        self.assertEqual(s.say("other"), "negotiate"); self.assertNotIn("overdue", s.vars["say"]); self.assertIn("Can you pay 637.50", s.vars["say"])
+
+    def test_identity_side_question_no_reask(self):
+        s = self.sim([]); s.node("identity_prep")
+        s.vars.update({"id_stance": "question", "q_kind": "robot"}); self.assertEqual(s.node("identity_eval"), "identity")
+        self.assertIn("digital assistant", s.vars["say"]); self.assertNotIn("date of birth", s.vars["say"])
 
     def test_question_then_repeat(self):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
@@ -242,6 +252,11 @@ class BriefBTests(unittest.TestCase):
         cls.api = load_openapi(os.path.join(ROOT, "tools", "openapi.json")); cls.spec = load_spec("spec-brief-ab.json")
 
     def sim(self, products): return Sim(self.spec, self.api, products)
+
+    def test_all_phase_keeps_phase_on_vague(self):
+        s = self.sim([CC("6604", 300.0, 4, 90.0), LOAN("p2", "personal_loan", 900.0, 20, 300.0)]); s.start()
+        self.assertEqual(s.say("proposes"), "negotiate"); self.assertEqual(s.vars["neg_phase"], "all"); self.assertIn("exact day", s.vars["say"])
+        self.assertEqual(s.say("proposes", date="30"), "confirm"); self.assertIn("23 October", s.vars["readback_text"]); self.assertIn("30 October", s.vars["readback_text"])
 
     def test_pub11_three_one_date(self):
         s = self.sim([CC("2288", 220.0, 9, 66.0), LOAN("p2", "personal_loan", 640.0, 9, 213.0), LOAN("p3", "car_loan", 75.0, 3, 25.0)])

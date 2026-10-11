@@ -64,9 +64,12 @@ def _sentence(s):
     return s
 
 def _say(vars, text, ask=None):
-    """Set what the next node says. `ask` (default: the text) is what gets repeated after a side question."""
+    """Set what the next node says. `ask` (default: the last question composed by _ask_pay, else the text) is what
+    gets repeated after a side question or a non-answer, so an offer's explanation is never said twice."""
     text = " ".join(str(text or "").split())
     vars["say"] = text
+    if ask is None and str(_g(vars, "last_question", "")) and str(_g(vars, "last_question", "")) in text: ask = str(_g(vars, "last_question", ""))
+    vars["last_question"] = ""
     vars["last_ask"] = " ".join(str(ask if ask is not None else text).split())
 
 _CORRECTION = re.compile(r"\b(sorry|i mean|i meant|actually|no wait|wait no|wait,|no,|correction|scratch that|make that|rather|not that|let me correct|i mean to say)\b[:,]?", re.I)
@@ -328,7 +331,7 @@ def _identity_eval_body(vars, CFG):
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
     if st == "asks_what_about" and not _gi(vars, "id_asked_about", 0):
         vars["id_asked_about"] = 1
-        _say(vars, _std_reply(vars, CFG, "what_about") + " " + ask, ask); vars["route"] = "identity"; return
+        _say(vars, _std_reply(vars, CFG, "what_about"), ask); vars["route"] = "identity"; return
     if st in ("declines", "asks_what_about", "dont_want_to_talk"):
         n = _gi(vars, "id_refusals", 0) + 1; vars["id_refusals"] = n
         limit = int(_s(CFG, "identity.declined.max_refusals", 2) or 2)
@@ -342,7 +345,7 @@ def _identity_eval_body(vars, CFG):
         _say(vars, explain + " " + ask, ask); vars["route"] = "identity"; return
     if (st == "question" or qk != "none") and not text:
         reply = _std_reply(vars, CFG, qk if qk != "none" else "other")
-        _say(vars, reply + " " + ask, ask); vars["route"] = "identity"; return
+        _say(vars, reply, ask); vars["route"] = "identity"; return
     if not text:
         _say(vars, "I am sorry, I did not catch that. " + ask, ask); vars["route"] = "identity"; return
     buf = (str(_g(vars, "id_buf", "")) + " " + text).strip()
@@ -546,7 +549,9 @@ def _when(vars, CFG, date_iso):
     return "on " + str(_speak_date(date_iso) or date_iso)
 
 def _ask_pay(vars, k, amount, date_iso, CFG, lead=""):
-    return (lead + " " if lead else "") + "Can you pay " + _money(amount, CFG) + " for the " + str(_pget(vars, k, "name", "product")) + " " + _when(vars, CFG, date_iso) + "?"
+    q = "Can you pay " + _money(amount, CFG) + " for the " + str(_pget(vars, k, "name", "product")) + " " + _when(vars, CFG, date_iso) + "?"
+    vars["last_question"] = q
+    return (lead + " " if lead else "") + q
 
 def _make_attempt(vars, k, CFG, now):
     """Use one persuasion attempt. Returns the sentence to say, or '' when attempts are exhausted."""
@@ -715,7 +720,7 @@ def _eval_body(vars, CFG):
     # a turn with nothing about the payment in it (small talk, a cut-off sentence): ask again twice before it counts as a non-answer
     if stance in ("other", "none") and d_status == "none" and amt is None and not ptext:
         na = _gi(vars, "nonanswer_count", 0) + 1; vars["nonanswer_count"] = na
-        if na <= 2:
+        if na <= 4:
             _say(vars, "Sorry, I missed that. " + last_ask, last_ask); vars["route"] = "negotiate"; return
         vars["nonanswer_count"] = 0
     else:
@@ -757,6 +762,11 @@ def _eval_body(vars, CFG):
             for j in range(1, n + 1):
                 if str(_pget(vars, j, "state")) == "open": _settle(vars, j, today.isoformat(), _gf(vars, _pk(j, "full")), CFG)
             vars["route"] = _advance(vars, CFG, now); return
+        if stance == "proposes" and d_status != "date" and amt is None and not _match_product(vars, ptext, n):
+            asked = _gi(vars, "all_exact_asked", 0) + 1; vars["all_exact_asked"] = asked
+            if asked <= 2:
+                _say(vars, "Which exact day can you pay?"); vars["route"] = "negotiate"; return
+            vars["neg_phase"] = "product"; vars["route"] = _advance(vars, CFG, now); return
         if stance == "proposes":
             target = _match_product(vars, ptext, n)
             if target:
