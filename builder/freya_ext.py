@@ -30,7 +30,7 @@ def call_events(call_id):
         except Exception: continue
         e = ev.get("event")
         if e == "node_enter": nodes.append(ev.get("node"))
-        elif e == "function_call_start": tools.append({"tool": ev.get("function"), "args": (ev.get("args") or {}).get("body") if isinstance(ev.get("args"), dict) else ev.get("args")})
+        elif e == "function_call_start": tools.append({"tool": ev.get("function"), "url": (ev.get("args") or {}).get("url") if isinstance(ev.get("args"), dict) else None, "args": (ev.get("args") or {}).get("body") if isinstance(ev.get("args"), dict) else ev.get("args")})
         elif e == "function_call_complete":
             if tools and tools[-1].get("tool") == ev.get("function") and "result" not in tools[-1]: tools[-1]["result"] = (ev.get("result") or {}).get("data") if isinstance(ev.get("result"), dict) else ev.get("result")
         elif e == "function_call_error":
