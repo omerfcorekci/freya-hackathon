@@ -392,3 +392,25 @@ Open:
 
 Procedure and checklist: `SUBMISSION.md`. Allowed after 17:00 UTC: crash fixes only, reviewed by both, one commit each.
 Leak check before the final commit: `python3 builder/leak_check.py <freeze_commit> briefs/hidden-1.md briefs/hidden-2.md`.
+
+## 16. Where the format comes from: τ^τ-bench
+
+The organisers' format follows τ^τ-bench ("hyper-tau-bench", Shi, Dhandhania, Narasimhan, Barres, arXiv 2609.04611,
+September 2026): a developer agent gets the records a business actually keeps, a client-operated API and a simulated
+client, and must deliver a customer-service agent that is scored against held-out simulated users. What carries over to
+the hackathon and what we already do about it:
+
+- A task passes when the final database state matches the annotated outcome, and the communicated information is
+  graded by rubric-driven LLM judges. That is the kit's ledger check plus judge check; every rule lives in code nodes so
+  the ledger side is deterministic, and every sentence the brief mandates is composed in code.
+- Simulated users disclose information progressively ("wait for the agent to ask for specific information") and, in the
+  spoken variant, use disfluencies, restarts and identifiers spelled "digits and letters one by one". The agent asks for
+  every item explicitly, one security question at a time, and the answer normaliser joins digits and words.
+- The paper's developer agents failed mostly by shallow evidence use (keyword search, few files opened), by rewriting
+  the starter code without running it, by weakening their own failing tests, and by converging on a single LLM tool
+  loop. The builder reads the whole brief in one structured extraction with source quotes, compiles deterministically,
+  and its tests are the organisers' scorer plus fixed offline checks that never adapt to a failure.
+- One of the paper's conduct judges fails an agent that begins more than one customer-facing response with the same
+  opening phrase. No brief so far has such a rule and the agent does repeat leads such as "I understand."; if a hidden
+  brief states it, that is a rule the current code cannot express (known gap, noted here on purpose, not changed before
+  the freeze).
