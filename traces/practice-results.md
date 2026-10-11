@@ -47,3 +47,11 @@ sorry, the 20th"); re-asks that repeat only the question so an offer is never ma
   ("to to connect them") fixed afterwards.
 - Freeze candidate (11 Oct 12:22 UTC saves, run 12:51–12:55 UTC): Brief A **10/10**, Brief B **3/3** (plain style) on the
   final code; the platform's judge answered normally for these runs.
+- Robustness pass (11 Oct 13:21 UTC saves, A v16 and B v14, same specs; runs 13:22–13:40 UTC): Brief A **10/10**. Brief B
+  1/3, then 2/3, then PUB-13 alone 1/1: every failure was a call with no events at all after the customer's first answer
+  ("Yes, this is …"), no `variable_extracted`, no code node, 61 s of silence, `customer-ended-call`. The platform was slow
+  (median slowest agent turn 25 s against 4–6 s earlier) and the three B calls start at the same instant. The workflow on
+  the platform was compared with the local compile (identical apart from the platform's default fields) and with the
+  freeze candidate (opening node, system prompt and every non-code part byte-identical; only the code strings changed,
+  and no code node ran in the stalled calls). Each of PUB-11, PUB-12 and PUB-13 passed on the new code with the expected
+  tool path once its first turn went through.

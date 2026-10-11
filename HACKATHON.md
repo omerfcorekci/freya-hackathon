@@ -376,7 +376,8 @@ Done:
   floor by the deadline when the brief lists none; hardship without rules gets one sentence of sympathy and the normal
   persuasion; third parties switched off close politely; a callback today only on a business day, a wrong-answer limit
   per security question and attempts that propose a share of the past-due amount are available when a brief states them.
-  Brief A and B compile exactly as before.
+  Brief A and B compile exactly as before. Saved at 13:21 UTC: A 10/10; B's three cases all passed, in runs where the
+  platform stalled some calls before the first extraction (`traces/practice-results.md`).
 
 Platform on Sunday morning: 502/503/504 for long stretches, judge analyses missing ("inconclusive"/"error"), simulations
 left hanging. Everything that talks to the platform now retries with back-off, cancels hung simulations and never blocks
