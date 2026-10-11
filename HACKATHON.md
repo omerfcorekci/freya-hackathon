@@ -360,33 +360,33 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Status (Sunday 01:15 UTC, 04:15 TR)
+## 14. Status (Sunday 02:40 UTC, 05:40 TR)
 
 Done tonight:
 - Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25–0.45, ~50–65 s),
   compiles, lints, dry-runs, saves in place, exports, self-tests, writes the trace. Architecture in `builder/README.md`.
   A fresh `git clone` ran the hidden-brief command end to end in 50 s on the raw rehearsal brief.
-- Practice cases (details in `traces/practice-results.md`): Brief A **10/10 ×3**, Brief B **3/3 ×3** (plain style);
-  speaking styles after fixes: pieces, corrects, asks_back, in_words all 10/10 (A) and 3/3 (B); talkative 10/10 (A),
-  2/3 (B). Median agent turn 2–5 s (the dialogue model is never used).
+- Practice cases (details in `traces/practice-results.md`): plain style **A 10/10 and B 3/3 in every repeated run**
+  (A ×3, B ×3 on v10; B ×2 and A ×1 on v12). Speaking styles: pieces, corrects, asks_back, in_words 10/10 (A) and 3/3 (B);
+  talkative 9–10/10 (A) and 3/3 (B) after the fixes; the remaining talkative misses come from the platform cutting the
+  customer's sentences and from judges reading literally. Median agent turn 2–5 s.
 - Rehearsal briefs (another bank, business customers, 3 identity questions, 4 bands, Saturday business day, other
   outcome names, raw mail + policy + memo + code list): spec extraction correct including the memo's overrides and a
-  custom situation ("business closed"); compiled workflows accepted by the platform's dry run.
-- Tooling: `builder/batch_tests.py` (reps and styles under a watchdog), `builder/run_cases_safe.py` (cancels a
-  simulation the platform leaves hanging), `builder/leak_check.py` (for Sunday), `SUBMISSION.md` (procedure, form, checklist).
+  custom situation; compiled workflows accepted by the platform's dry run with the current compiler.
+- Tooling: `builder/batch_tests.py` (reps and styles), `builder/run_cases_safe.py` and `builder/watchdog.py` (nothing
+  runs for ever: stale scorer runs are killed and hung simulations cancelled), `builder/leak_check.py`, `SUBMISSION.md`.
 
 Known limits:
-- The platform cuts long customer messages mid-sentence (talkative style). The agent now detects a cut-off turn through
-  extraction and asks again without counting it; one talkative B case still fails sometimes.
-- The chat route (`/api/v2/chat/message`) returned 503/504 for most of the night; the builder's chat self-test marks
-  that inconclusive. For hidden briefs without practice cases the only live test is this route, so a hidden-brief run may
-  end with offline tests only. The simulation route was fine throughout.
-- Judges read literally: the opening line says "kept on record" instead of "recorded"; re-asks repeat only the question.
+- The platform cuts long customer messages mid-sentence (talkative style) and sometimes leaves a simulation hanging or
+  never delivers the judge's analysis. The agent detects cut-off turns and asks again; the tooling cancels hung runs.
+- The chat route (`/api/v2/chat/message`) returned 503/504 for most of the night; the chat self-test marks that
+  inconclusive. For hidden briefs without practice cases the live test is only this route.
+- Judges read literally: the opening says "kept on record" instead of "recorded"; re-asks never restate an offer.
 
 Open for the morning:
-- [ ] Read `results/batch-reps3-v10.log` and `results/batch-talkative-reps2.log` (running at 01:15 UTC).
+- [ ] Read `results/batch-final-v13.log` (A and B, plain and talkative, started 02:40 UTC).
 - [ ] YC registration and team name; the submission email address from the kit email; GitHub repo access for the organisers; push.
-- [ ] Freeze by 15:30 UTC: `git status` clean, unit tests green, one last fresh-clone dry run (SUBMISSION.md).
+- [ ] Freeze by 15:30 UTC: `git status` clean, `python3 -m unittest discover builder/tests` green, one last fresh-clone dry run (SUBMISSION.md).
 
 ## 15. Sunday
 
