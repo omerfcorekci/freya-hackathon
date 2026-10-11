@@ -18,6 +18,8 @@ def run_one(agent, letter, reps, style, only):
     t0 = time.time()
     p = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     out = p.stdout
+    os.makedirs(os.path.join(ROOT, "results", "batch"), exist_ok=True)
+    with open(os.path.join(ROOT, "results", "batch", f"{letter}-{style or 'plain'}-reps{reps}-{time.strftime('%H%M%S')}.log"), "w") as f: f.write(out + "\n" + p.stderr)
     m = re.search(r"(\d+) / (\d+) passed", out)
     failed = re.findall(r"^FAIL (PUB-\d+)", out, flags=re.M)
     return {"brief": letter, "reps": reps, "style": style or "-", "passed": m.group(1) if m else "?", "total": m.group(2) if m else "?",
