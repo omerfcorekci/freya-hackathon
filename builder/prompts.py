@@ -95,6 +95,8 @@ def farewell_task(spec):
 
 # ---- extraction descriptions (the extraction model reads these) ---------------------------------------------------
 
+CLARITY = ("'cut_off' if the customer's MOST RECENT message stops in the middle of a sentence or a word (an unfinished thought, e.g. 'I have been so busy because my cousin'), "
+           "'complete' if it is a finished statement or question.")
 Q_KIND = ("If the customer's MOST RECENT message asks a question, which kind: 'robot' = whether they are talking to a robot, an AI or a machine; "
           "'scam' = whether this call is a scam or genuine, or how to verify it; 'what_about' = what the call is about, why you are calling, which account or product; "
           "'other' = any other question; 'none' = no question in the message.")

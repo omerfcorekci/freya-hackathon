@@ -85,6 +85,11 @@ def _corrected(text):
             out = part; break
     return out.strip(" ,:.")
 
+def _cut(vars):
+    """True when the extraction says the customer's last message was cut off mid-sentence (the platform does this)."""
+    c = str(_g(vars, "clarity", "complete")); vars["clarity"] = "complete"
+    return c == "cut_off"
+
 def _std_reply(vars, CFG, kind):
     kind = str(kind or "none")
     if kind == "robot": return _sentence(_s(CFG, "opening.robot_reply", "I am a digital assistant."))
@@ -179,6 +184,9 @@ def _node_opening_tally(vars, CFG):
         if n >= int(_s(CFG, "situations.dont_want_to_talk.times", 2) or 2):
             _outcome(vars, _s(CFG, "situations.dont_want_to_talk.before_verified") or _s(CFG, "identity.declined.outcome"))
             _say(vars, "I understand and will not keep you. " + _goodbye()); vars["route"] = "close"; return
+    if _cut(vars) and ack in ("unclear", "question") and _gi(vars, "cut_turns", 0) < 3:
+        vars["cut_turns"] = _gi(vars, "cut_turns", 0) + 1
+        _say(vars, "Sorry, you were cut off. " + ask, ask); vars["route"] = "again"; return
     n = _gi(vars, "ask_count", 1) + 1; vars["ask_count"] = n
     if n > int(_s(CFG, "opening.max_asks", 2) or 2):
         _outcome(vars, _s(CFG, "opening.unclear"))
@@ -329,6 +337,9 @@ def _identity_eval_body(vars, CFG):
     if st == "wants_human":
         vars["resume_to"] = "identity"; vars["resume_ask"] = ask
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
+    cut = _cut(vars)
+    if cut and not text and st in ("declines", "dont_want_to_talk", "other", "answering", "question"):
+        _say(vars, "Sorry, you were cut off. " + ask, ask); vars["route"] = "identity"; return
     if st == "asks_what_about" and not _gi(vars, "id_asked_about", 0):
         vars["id_asked_about"] = 1
         _say(vars, _std_reply(vars, CFG, "what_about"), ask); vars["route"] = "identity"; return
@@ -348,6 +359,7 @@ def _identity_eval_body(vars, CFG):
         _say(vars, reply, ask); vars["route"] = "identity"; return
     if not text:
         _say(vars, "I am sorry, I did not catch that. " + ask, ask); vars["route"] = "identity"; return
+    vars["id_refusals"] = 0     # the customer is answering: earlier reluctance no longer counts
     buf = (str(_g(vars, "id_buf", "")) + " " + text).strip()
     value, complete = _norm_answer(buf, q)
     if not complete and not _gi(vars, "id_partial", 0):
@@ -442,6 +454,8 @@ def _tp_eval_body(vars, CFG):
         _outcome(vars, _s(CFG, "third_party.deceased.outcome")); _say(vars, _sentence(_s(CFG, "third_party.deceased.sentence", "I am sorry for your loss.")) + " Goodbye."); vars["route"] = "close"; return
     if st == "refuses" or not cb.get("enabled", True):
         _outcome(vars, cb.get("not_scheduled") or _s(CFG, "opening.unclear")); _say(vars, "I understand. " + _goodbye()); vars["route"] = "close"; return
+    if _cut(vars) and not dtext and not ttext:
+        _say(vars, "Sorry, you were cut off. " + ask, ask); vars["route"] = "again"; return
     if not dtext and not ttext:
         reply = _std_reply(vars, CFG, qk) if qk != "none" else "I am afraid I can only discuss this with " + name + "."
         _say(vars, reply + " " + ask, ask); vars["route"] = "again"; return
@@ -717,12 +731,14 @@ def _eval_body(vars, CFG):
         r = _apply_custom(vars, CFG, _custom(CFG, stance)); vars["route"] = r if r != "close" else "close"; return
     if stance == "question" or (stance in ("other", "none") and qk != "none"):
         _say(vars, _std_reply(vars, CFG, qk if qk != "none" else "other") + " " + last_ask, last_ask); vars["route"] = "negotiate"; return
-    # a turn with nothing about the payment in it (small talk, a cut-off sentence): ask again twice before it counts as a non-answer
-    if stance in ("other", "none") and d_status == "none" and amt is None and not ptext:
+    # a turn with nothing about the payment in it (small talk, a sentence the platform cut off): ask again before it counts
+    cut = _cut(vars)
+    if (stance in ("other", "none") or (cut and stance in ("refuses", "vague", "too_much"))) and d_status == "none" and amt is None and not ptext:
         na = _gi(vars, "nonanswer_count", 0) + 1; vars["nonanswer_count"] = na
-        if na <= 4:
-            _say(vars, "Sorry, I missed that. " + last_ask, last_ask); vars["route"] = "negotiate"; return
+        if na <= (8 if cut else 4):
+            _say(vars, ("Sorry, you were cut off. " if cut else "Sorry, I missed that. ") + last_ask, last_ask); vars["route"] = "negotiate"; return
         vars["nonanswer_count"] = 0
+        if stance in ("other", "none"): stance = "refuses"
     else:
         vars["nonanswer_count"] = 0
     if stance == "human":
@@ -906,7 +922,8 @@ def _eval_confirm_body(vars, CFG):
         opens = [k for k in range(1, n + 1) if str(_pget(vars, k, "state")) == "open"]
         vars["cur_k"] = opens[0] if opens else 1
         vars["neg_phase"] = "product"; vars["stance"] = "refuses"; vars["route"] = "eval"; return
-    reply = _std_reply(vars, CFG, qk) if qk != "none" else "I am sorry, I need a clear yes or no."
+    cut = _cut(vars)
+    reply = _std_reply(vars, CFG, qk) if qk != "none" else ("Sorry, you were cut off." if cut else "I am sorry, I need a clear yes or no.")
     _say(vars, reply + " " + last_ask, last_ask); vars["route"] = "confirm"
 
 def _next_record(vars, CFG):

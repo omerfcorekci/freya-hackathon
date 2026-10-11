@@ -241,6 +241,16 @@ class BriefATests(unittest.TestCase):
         s.vars.update({"id_stance": "question", "q_kind": "robot"}); self.assertEqual(s.node("identity_eval"), "identity")
         self.assertIn("digital assistant", s.vars["say"]); self.assertNotIn("date of birth", s.vars["say"])
 
+    def test_cut_off_turns_do_not_count(self):
+        s = self.sim([LOAN("p1", "car_loan", 1250.0, 14, 400.0)]); s.start()
+        for i in range(6):
+            s.vars["clarity"] = "cut_off"; self.assertEqual(s.say("refuses"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 0); self.assertIn("cut off", s.vars["say"])
+        self.assertEqual(s.say("proposes", date="6 November"), "negotiate"); self.assertEqual(s.say("agrees"), "confirm")
+        s = self.sim([]); s.node("identity_prep")
+        s.vars.update({"id_stance": "declines", "clarity": "cut_off"}); self.assertEqual(s.node("identity_eval"), "identity"); self.assertEqual(s.vars.get("id_refusals", 0), 0)
+        s.vars.update({"id_stance": "declines"}); self.assertEqual(s.node("identity_eval"), "identity"); self.assertEqual(s.vars["id_refusals"], 1)
+        s.vars.update({"id_stance": "answering", "id_answer_text": "12 July 1991"}); self.assertEqual(s.node("identity_eval"), "verify"); self.assertEqual(s.vars["id_refusals"], 0)
+
     def test_question_then_repeat(self):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
         s.vars["q_kind"] = "robot"; self.assertEqual(s.say("question"), "negotiate"); self.assertIn("digital assistant", s.vars["say"]); self.assertIn("today?", s.vars["say"])

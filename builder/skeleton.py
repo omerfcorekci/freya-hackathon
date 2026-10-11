@@ -26,6 +26,7 @@ def compile_workflow(spec, api, cfg):
     roles = cfg["roles"]; cid = "{{" + cfg["customer_id_var"] + "}}"
     baked_cid = {roles["customer_id"]: cid}
     q_ext = ext("q_kind", prompts.Q_KIND, enum=["robot", "scam", "what_about", "other", "none"], min_confidence=0.4)
+    cl_ext = ext("clarity", prompts.CLARITY, enum=["complete", "cut_off"], min_confidence=0.4)
     prop_ext = [ext("prop_date_text", prompts.PROP_DATE, min_confidence=0.4), ext("prop_amount_text", prompts.PROP_AMOUNT, min_confidence=0.4),
                 ext("prop_product_text", prompts.PROP_PRODUCT, min_confidence=0.4)]
     nodes = {}
@@ -40,7 +41,7 @@ def compile_workflow(spec, api, cfg):
     if pre_customs:
         ack_enum = ack_enum + ["custom_" + str(i + 1) for i, c in pre_customs]
         ack_desc += " " + " ".join(f"'custom_{i + 1}' = {str(c['when']).rstrip('.')}." for i, c in pre_customs)
-    ack_ext = [ext("ack", ack_desc, enum=ack_enum, min_confidence=0.4), q_ext]
+    ack_ext = [ext("ack", ack_desc, enum=ack_enum, min_confidence=0.4), q_ext, cl_ext]
     # Transitions never test an extracted variable directly: the engine evaluates them before the turn's extraction lands.
     # Every customer turn goes through a code node, which does see the fresh values and sets `route`.
     ack_routes = [t_always("opening_tally")]
@@ -56,7 +57,7 @@ def compile_workflow(spec, api, cfg):
                                        _route([("fetch", "fetch_account")], "identity"))
     nodes["identity"] = _talk("identity", spec, "identity_eval",
                               [ext("id_stance", prompts.ID_STANCE, enum=["answering", "declines", "asks_what_about", "dont_want_to_talk", "wants_human", "question", "other"], min_confidence=0.4),
-                               ext("id_answer_text", prompts.ID_ANSWER, min_confidence=0.3), q_ext])
+                               ext("id_answer_text", prompts.ID_ANSWER, min_confidence=0.3), q_ext, cl_ext])
     nodes["identity_eval"] = code_node("identity_eval", codegen.code_source("identity_eval", cfg), "identity",
                                        _route([("verify", "verify"), ("human", "human_ask"), ("close", "farewell")], "identity"))
     vi = api_tool(api, "verify_identity", dict(baked_cid, **{roles["vi_field"]: "{{id_next_field}}", roles["vi_answer"]: "{{id_answer}}"}),
@@ -71,7 +72,7 @@ def compile_workflow(spec, api, cfg):
     nodes["tp_prep"] = code_node("tp_prep", codegen.code_source("tp_prep", cfg), "third_party")
     nodes["third_party"] = _talk("third_party", spec, "tp_eval",
                                  [ext("tp_stance", prompts.TP_STANCE, enum=["gives_time", "wrong_number", "deceased", "refuses", "other"], min_confidence=0.4),
-                                  ext("cb_date_text", prompts.CB_DATE, min_confidence=0.3), ext("cb_time_text", prompts.CB_TIME, min_confidence=0.3), q_ext])
+                                  ext("cb_date_text", prompts.CB_DATE, min_confidence=0.3), ext("cb_time_text", prompts.CB_TIME, min_confidence=0.3), q_ext, cl_ext])
     nodes["tp_eval"] = code_node("tp_eval", codegen.code_source("tp_eval", cfg), "third_party",
                                  _route([("schedule", "schedule_cb"), ("close", "farewell")], "third_party"))
     if api.has("schedule_callback"):
@@ -96,11 +97,11 @@ def compile_workflow(spec, api, cfg):
         stance_enum = stance_enum + ["custom_" + str(i + 1) for i in range(len(customs))]
         stance_desc += " " + " ".join(f"'custom_{i + 1}' = {str(c['when']).rstrip('.')}." for i, c in enumerate(customs))
     nodes["negotiate"] = _talk("negotiate", spec, "eval",
-                               [ext("stance", stance_desc, enum=stance_enum, min_confidence=0.4)] + prop_ext + [q_ext])
+                               [ext("stance", stance_desc, enum=stance_enum, min_confidence=0.4)] + prop_ext + [q_ext, cl_ext])
     nodes["eval"] = code_node("eval", codegen.code_source("eval", cfg), "negotiate",
                               _route([("confirm", "confirm"), ("hardship", "hardship_offer"), ("human", "human_ask"), ("transfer", "say_transfer"), ("close", "notes_plan")], "negotiate"))
     nodes["hardship_offer"] = _talk("hardship_offer", spec, "eval_hardship",
-                                    [ext("hs_stance", prompts.HS_STANCE, enum=["accepts", "declines", "proposes", "other"], min_confidence=0.4)] + prop_ext[:2] + [q_ext])
+                                    [ext("hs_stance", prompts.HS_STANCE, enum=["accepts", "declines", "proposes", "other"], min_confidence=0.4)] + prop_ext[:2] + [q_ext, cl_ext])
     nodes["eval_hardship"] = code_node("eval_hardship", codegen.code_source("eval_hardship", cfg), "hardship_offer",
                                        _route([("transfer", "say_transfer"), ("eval", "eval"), ("confirm", "confirm"), ("negotiate", "negotiate"), ("close", "notes_plan")], "hardship_offer"))
     nodes["human_ask"] = _talk("human_ask", spec, "eval_human", [ext("hum_stance", prompts.HUM_STANCE, enum=["insists", "continues", "other"], min_confidence=0.4), q_ext])
@@ -109,7 +110,7 @@ def compile_workflow(spec, api, cfg):
 
     # ---- confirmation and recording ------------------------------------------------------------------------------
     nodes["confirm"] = _talk("confirm", spec, "eval_confirm",
-                             [ext("confirm_stance", prompts.CONFIRM_STANCE, enum=["yes", "no", "change", "question", "other"], min_confidence=0.4)] + prop_ext + [q_ext])
+                             [ext("confirm_stance", prompts.CONFIRM_STANCE, enum=["yes", "no", "change", "question", "other"], min_confidence=0.4)] + prop_ext + [q_ext, cl_ext])
     nodes["eval_confirm"] = code_node("eval_confirm", codegen.code_source("eval_confirm", cfg), "confirm",
                                       _route([("record", "record"), ("eval", "eval"), ("close", "notes_plan"), ("confirm", "confirm")], "confirm"))
     cp_baked = dict(baked_cid, **{roles["cp_product"]: "{{rec_pid}}", roles["cp_amount"]: "{{rec_amount}}", roles["cp_date"]: "{{rec_date}}"})
