@@ -2,7 +2,7 @@
   "team": "Ömer Faruk Çörekci",
   "members": [{ "name": "Ömer Faruk Çörekci", "email": "omerfarukcorekci@gmail.com" }],
   "repo": "https://github.com/omerfcorekci/freya-hackathon",
-  "commit": "2247be52bc340f6bf70511dcae3f642030195acf",
+  "commit": "b52abfe88f2f2eb7e9aa4c664edc182cd10b9f4e",
   "run_command": "python3 builder/build.py {case_folder} {mock_url}",
   "workflow": "submission/final.workflow.json",
   "trace": "traces/final.log",
