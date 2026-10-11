@@ -21,6 +21,8 @@ Runs of the compiled phone agents against the kit's 13 practice customers, throu
 | 11 Oct 01:05 | A v9, B v7 | A, B | talkative | 1 | 10/10; 2/3 |
 | 11 Oct 01:11 | A v10, B v8 | A, B | plain | 3 | **10/10 and 3/3 in every run** (regression check after all style fixes) |
 | 11 Oct 01:20 | A v10, B v8 | A, B | talkative | 2 | A: run killed after a simulation hung 20 min (watchdog); B: run 1 0/3 (two judge analyses never arrived, one agent loop), run 2 3/3 |
+| 11 Oct 01:57 | A v11, B v9 | B, A | plain; talkative | 1 | B plain 2/3 (a count of products read as an amount); B talkative killed after a hung simulation; A talkative 9/10 |
+| 11 Oct 02:19 | A v12, B v10 | B, A | plain ×2, plain, talkative | 2, 1, 1 | **B 3/3 in both runs, A 10/10, B talkative 3/3**, A talkative 9/10 (an offer repeated after a cut-off turn) |
 
 What the style runs taught the builder (all fixed in code, not in prompts): dates and years said in words or digit by
 digit; a question asked back during the security check; small talk that the platform cuts mid-sentence (treated as a
