@@ -5,6 +5,6 @@
   "commit": "b52abfe88f2f2eb7e9aa4c664edc182cd10b9f4e",
   "run_command": "python3 builder/build.py {case_folder} {mock_url}",
   "workflow": "submission/final.workflow.json",
-  "trace": "traces/final.log",
+  "trace": "traces/final.session.jsonl",
   "mock_url": "https://freya-bank-mock-corekci.omerfcorekci.workers.dev"
 }
