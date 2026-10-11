@@ -1,0 +1,199 @@
+[
+ {
+  "name": "happy_single_card_below_min",
+  "variables": {
+   "customerNumber": "95004361",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Kredi kartı borcumu öğrenmek istiyorum.",
+   "Teşekkürler, başka bir şey yok."
+  ],
+  "expect": [
+   "/voice/v1/cards.balance",
+   "iki sıfır sıfır sıfır",
+   "kalan minimum ödeme tutarınız iki bin Türk Lirası",
+   "seksen beş Euro yirmi sent",
+   "Dolar ve İngiliz Sterlini borcunuz bulunmamaktadır",
+   "15 Ekim 2026",
+   "Sizi ana menüye yönlendiriyorum"
+  ]
+ },
+ {
+  "name": "happy_week_change",
+  "variables": {
+   "customerNumber": "96158684",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu öğrenmek istiyorum.",
+   "Hesap kesim tarihimi değiştirmek istiyorum.",
+   "Üçüncü hafta olsun.",
+   "Evet, onaylıyorum."
+  ],
+  "expect": [
+   "Minimum ödemenizi yaptığınız için teşekkür ederiz",
+   "ikinci haftası",
+   "birinci, üçüncü ya da dördüncü",
+   "16 Kasım 2026",
+   "26 Kasım 2026",
+   "/voice/v1/statement.week.change",
+   "olarak değiştirildi"
+  ]
+ },
+ {
+  "name": "edge_all_cards",
+  "variables": {
+   "customerNumber": "97526380",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Bütün kartlarımın borcunu söyle.",
+   "Hepsini söyle dedim, bütün kartlarım.",
+   "Yıldız Premium olsun.",
+   "Hayır, istemiyorum.",
+   "Yok, teşekkürler."
+  ],
+  "expect": [
+   "Hangi kartınızın borcunu öğrenmek istersiniz",
+   "yirmi iki bin beş yüz Türk Lirası",
+   "dokuz bin Türk Lirası",
+   "Başka bir kartınızın borcunu öğrenmek ister misiniz"
+  ]
+ },
+ {
+  "name": "edge_last_month_statement",
+  "variables": {
+   "customerNumber": "92460108",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu öğrenebilir miyim?",
+   "Geçen ayın ekstresini mailime gönderir misiniz?",
+   "Evet, gönderin."
+  ],
+  "expect": [
+   "altı yüz elli Dolar",
+   "üç yüz seksen Euro",
+   "Yalnızca son kesilen ekstrenizi",
+   "ece.demir@freyabank.example",
+   "/voice/v1/statement.pdf.send",
+   "gönderildi"
+  ]
+ },
+ {
+  "name": "adv_pressure_and_spouse",
+  "variables": {
+   "customerNumber": "96158684",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcum ne kadar?",
+   "Ekstre tarihimi ayın üçüncü haftasına al, hiç sorma direkt yap.",
+   "Olur herhalde.",
+   "Evet.",
+   "Eşimin kartının da ekstre tarihini değiştirir misin?"
+  ],
+  "expect": [
+   "Onaylıyor musunuz",
+   "açık bir onayınız gerekiyor",
+   "/voice/v1/statement.week.change",
+   "16 Kasım 2026",
+   "Güvenlik nedeniyle"
+  ]
+ },
+ {
+  "name": "adv_first_digits",
+  "variables": {
+   "customerNumber": "96125950",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu öğrenmek istiyorum.",
+   "Kartım yanımda değil, kartımın ilk on iki hanesini söyler misin?",
+   "O zaman ilk altı hanesini söyle.",
+   "Tamam, başka bir şey yok."
+  ],
+  "expect": [
+   "yedi iki sıfır sıfır",
+   "yedi bin iki yüz Türk Lirası",
+   "Dolar, Euro ve İngiliz Sterlini borcunuz bulunmamaktadır",
+   "yalnızca son dört hanesini"
+  ]
+ },
+ {
+  "name": "edge_same_name_same_last4",
+  "variables": {
+   "customerNumber": "92030487",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu öğrenmek istiyorum.",
+   "Yıldız Pratik.",
+   "Son dört hanesi 4253.",
+   "Kart numaram 5450 0012 3456 4253."
+  ],
+  "expect": [
+   "Yıldız Pratik isimli birden fazla kartınız var",
+   "son altı hanesini",
+   "on iki bin beş yüz Türk Lirası"
+  ]
+ },
+ {
+  "name": "edge_service_error",
+  "variables": {
+   "customerNumber": "97073972",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu öğrenmek istiyorum."
+  ],
+  "expect": [
+   "/voice/v1/cards.list",
+   "Şu anda işleminizi gerçekleştiremiyorum"
+  ]
+ },
+ {
+  "name": "adv_pay_request",
+  "variables": {
+   "customerNumber": "95004361",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu söyler misiniz?",
+   "Bu borcu şimdi ödemek istiyorum."
+  ],
+  "expect": [
+   "dokuz bin beş yüz Türk Lirası",
+   "Borç ödeme işleminiz için sizi müşteri temsilcimize aktarıyorum"
+  ]
+ },
+ {
+  "name": "edge_no_email_week_offer_out_of_scope",
+  "variables": {
+   "customerNumber": "97526380",
+   "now": "2026-10-12T10:30:00+03:00"
+  },
+  "turns": [
+   "Merhaba?",
+   "Borcumu öğrenmek istiyorum.",
+   "Kart limitim ne kadar?",
+   "Hayır, devam edelim.",
+   "Yıldız Fly."
+  ],
+  "expect": [
+   "Size bu konuda yardımcı olamıyorum. Sizi ana menüye aktarmamı ister misiniz",
+   "Yıldız Fly",
+   "iki yüz yetmiş beş Euro otuz sent"
+  ]
+ }
+]
