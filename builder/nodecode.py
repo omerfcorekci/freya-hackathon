@@ -470,11 +470,11 @@ def _tp_eval_body(vars, CFG):
     d = _to_date(d_val) if d_status == "date" else None
     t = _parse_time(ttext) if ttext else None
     if d is None and t is not None:
-        if t > now.strftime("%H:%M"): d = today
+        if t > ("%02d:%02d" % (now.hour, now.minute)): d = today
         elif len(allowed) > 1: d = allowed[1]
     ws = str(cb.get("window_start") or "00:00"); we = str(cb.get("window_end") or "23:59")
     ok = d is not None and t is not None and d in allowed and ws <= t <= we
-    if ok and cb.get("after_now", True) and d == today and t <= now.strftime("%H:%M"): ok = False
+    if ok and cb.get("after_now", True) and d == today and t <= ("%02d:%02d" % (now.hour, now.minute)): ok = False
     if ok:
         vars["cb_date"] = d.isoformat(); vars["cb_time"] = t
         _say(vars, "Thank you. I will call back on " + str(_speak_date(d.isoformat())) + " at " + t + ". " + _goodbye()); vars["route"] = "schedule"; return
