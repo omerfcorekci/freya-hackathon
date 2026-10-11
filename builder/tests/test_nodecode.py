@@ -224,7 +224,7 @@ class BriefATests(unittest.TestCase):
     def test_talkative_nonanswer_then_agrees(self):
         s = self.sim([CC("7740", 365.0, 8, 109.5)]); s.start()
         for i in range(4):
-            self.assertEqual(s.say("other"), "negotiate"); self.assertIn("missed that", s.vars["say"]); self.assertEqual(s.vars["p1_attempts_used"], 0)
+            self.assertEqual(s.say("other"), "negotiate"); self.assertIn("Can you make this payment today?", s.vars["say"]); self.assertEqual(s.vars["p1_attempts_used"], 0)
         self.assertEqual(s.say("other"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 1)   # fifth non-answer uses an attempt
         self.assertEqual(s.say("agrees"), "confirm"); s.confirm(); self.assertEqual(s.promises, [("p1", 365.0, "2026-10-16")])
 
@@ -249,7 +249,7 @@ class BriefATests(unittest.TestCase):
     def test_cut_off_turns_do_not_count(self):
         s = self.sim([LOAN("p1", "car_loan", 1250.0, 14, 400.0)]); s.start()
         for i in range(6):
-            s.vars["clarity"] = "cut_off"; self.assertEqual(s.say("refuses"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 0); self.assertIn("cut off", s.vars["say"])
+            s.vars["clarity"] = "cut_off"; self.assertEqual(s.say("refuses"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 0); self.assertIn("Can you make this payment today?", s.vars["say"])
         self.assertEqual(s.say("proposes", date="6 November"), "negotiate"); self.assertEqual(s.say("agrees"), "confirm")
         s = self.sim([]); s.node("identity_prep")
         s.vars.update({"id_stance": "declines", "clarity": "cut_off"}); self.assertEqual(s.node("identity_eval"), "identity"); self.assertEqual(s.vars.get("id_refusals", 0), 0)

@@ -194,5 +194,46 @@ class BriefRuleVariants(unittest.TestCase):
         self.assertEqual(s.say("refuses"), "close"); self.assertEqual(s.close(), ("no_promise", "refused"))
 
 
+class OpenerVariety(unittest.TestCase):
+    """A reply's lead words vary across the call; the brief's own sentences and the questions are never changed."""
+    @classmethod
+    def setUpClass(cls):
+        cls.api = load_openapi(os.path.join(ROOT, "tools", "openapi.json")); cls.spec = load_spec("spec-brief-a.json")
+
+    def test_identity_thank_yous_differ(self):
+        s = Sim(self.spec, self.api, []); s.node("identity_prep"); first = s.vars["say"]
+        self.assertTrue(first.startswith("Thank you. To protect"))
+        s.vars.update({"id_stance": "answering", "id_answer_text": "14 March 1988"}); s.node("identity_eval")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "false", "vi_left": "3", "vi_hint": ""}); s.node("identity_after")
+        second = s.vars["say"]; self.assertFalse(second.startswith("Thank you.")); self.assertIn("could you please tell me the last four digits", second.lower())
+        s.vars.update({"id_stance": "answering", "id_answer_text": "4471"}); s.node("identity_eval")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "true", "vi_left": "3", "vi_hint": ""}); s.node("identity_after")
+        self.assertTrue(s.vars["say_prefix"].startswith("Thank you, that is verified."))      # a prefix is varied when it is spoken
+        s.vars["products"] = [CC("4821", 420.0, 6, 126.0)]; s.node("product_facts")
+        self.assertFalse(s.vars["say"].startswith("Thank you,")); self.assertIn("that is verified", s.vars["say"])
+
+    def test_non_answers_get_different_leads_and_the_same_question(self):
+        s = Sim(self.spec, self.api, [CC("7740", 365.0, 8, 109.5)]); s.start(); leads = []
+        for i in range(4):
+            s.say("other"); say = s.vars["say"]; leads.append(say.split(" Can you")[0]); self.assertTrue(say.endswith("Can you make this payment today?"))
+        self.assertEqual(len(set(leads)), 4)
+
+    def test_brief_sentences_are_never_varied(self):
+        s = Sim(self.spec, self.api, [CC("5512", 180.0, 5, 54.0)]); s.start()
+        s.say("paid"); s.say("paid")       # the already-paid sentence comes from the brief and starts a reply
+        self.assertTrue(s.vars["say_prefix"].startswith("Thank you. "))
+        sympathy = self.spec["hardship"]["sympathy"].strip(); sympathy += "" if sympathy[-1] in ".?!" else "."
+        s = Sim(self.spec, self.api, [LOAN("p1", "personal_loan", 780.0, 21, 260.0)]); s.start()
+        s.say("hardship"); self.assertTrue(s.vars["say"].startswith(sympathy), s.vars["say"])
+        s.vars["hs_stance"] = "none"; s.node("eval_hardship"); s.vars["stance"] = "hardship"; s.node("eval")
+        self.assertTrue(s.vars["say"].startswith(sympathy), s.vars["say"])
+
+    def test_second_product_head_varies(self):
+        two = [CC("1111", 400.0, 3, 120.0), LOAN("p2", "personal_loan", 900.0, 20, 300.0), LOAN("p3", "car_loan", 500.0, 10, 100.0)]
+        s = Sim(self.spec, self.api, two); s.start(); s.say("refuses")
+        s.say("agrees"); self.assertTrue(s.vars["say"].startswith("Now the "), s.vars["say"])
+        s.say("agrees"); self.assertTrue(s.vars["say"].startswith("Next, the "), s.vars["say"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -814,7 +814,7 @@ def _eval_body(vars, CFG):
             for j in range(1, n + 1):
                 if str(_pget(vars, j, "state")) == "open": _pset(vars, j, "state", "refused")
             vars["force_outcome"] = json.dumps(_s(CFG, "situations.dont_want_to_talk.after_verified") or dict())
-            vars["say_prefix"] = "I understand and will not keep you. "; vars["route"] = "close"; return
+            vars["say_prefix"] = "I understand, I will not keep you. "; vars["route"] = "close"; return
         _say(vars, "I understand, I will be brief. " + last_ask, last_ask); vars["route"] = "negotiate"; return
     if stance == "paid":
         if (phase == "all" and n > 1) or not _s(CFG, "multi_product.dispute_or_paid_does_not_end_call", True):
@@ -1136,3 +1136,48 @@ def _run_node(mode, vars, CFG):
     if f is None:
         vars["route"] = "farewell"; return
     f(vars, CFG)
+    try: _vary_opener(vars, CFG)
+    except Exception: pass
+
+
+# ---- openers ----------------------------------------------------------------------------------------------------------
+# A call where every second reply starts with "I understand." or "Thank you." reads as scripted; some conduct judges mark
+# a repeated opening phrase. The lead words of a reply are varied across the call. Sentences the brief dictates are
+# never touched, and the question that follows the lead stays exactly as composed.
+
+OPENERS = [
+    (r"I understand(?=[.,])", ["Understood", "All right", "I see", "Of course"]),
+    (r"Thank you(?=[.,])", ["Thanks", "Great, thank you", "Noted, thank you", "Perfect, thank you"]),
+    (r"Sorry, I missed that\.", ["I did not catch that.", "Pardon me, I missed that.", "Apologies, I did not get that.", "I did not quite follow that."]),
+    (r"Sorry, you were cut off\.", ["I think the line cut out.", "You were cut off for a moment.", "Apologies, the line dropped briefly.", "The line broke up for a moment."]),
+    (r"I am sorry, that does not match our records\.", ["That does not match what we have on file.", "Unfortunately that is not what we have on record.", "That is not the answer we have on file."]),
+    (r"I am sorry, I did not catch that\.", ["I did not quite catch that.", "Apologies, I missed that.", "Pardon me, I did not get that."]),
+    (r"Now the (?=.)", ["Next, the ", "Turning to the ", "Then the "]),
+    (r"Is there anything I can help you with first\?", ["Before I do that, is there anything I can help you with?", "Is there something I can help with first?"]),
+]
+
+def _spec_sentences(CFG):
+    out = []
+    def walk(o):
+        if isinstance(o, dict):
+            for v in o.values(): walk(v)
+        elif isinstance(o, list):
+            for v in o: walk(v)
+        elif isinstance(o, str) and len(o.strip()) >= 12: out.append(" ".join(o.split()))
+    walk(_spec(CFG)); return out
+
+def _vary_opener(vars, CFG):
+    say = str(vars.get("say") or "")
+    if not say: return
+    for sent in _spec_sentences(CFG):
+        if say.startswith(sent) or say.startswith(_sentence(sent)): return      # the brief's own sentence: keep it as written
+    try: hist = json.loads(str(vars.get("opener_hist") or "{}"))
+    except Exception: hist = dict()
+    for i, (pat, alts) in enumerate(OPENERS):
+        m = re.match(pat, say)
+        if not m: continue
+        n = int(hist.get(str(i), 0)); hist[str(i)] = n + 1; vars["opener_hist"] = json.dumps(hist)
+        if n > 0:
+            alt = alts[(n - 1) % len(alts)]
+            vars["say"] = alt + say[m.end():]
+        return
