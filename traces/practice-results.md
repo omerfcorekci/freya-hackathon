@@ -45,3 +45,5 @@ sorry, the 20th"); re-asks that repeat only the question so an offer is never ma
   of half the past-due amount (1062.55), Brief C's opening, intro, first question, letter sentence, "two business days"
   paid sentence, callback within the 08:00–18:00 window, notes on products without a promise. One wording slip
   ("to to connect them") fixed afterwards.
+- Freeze candidate (11 Oct 12:22 UTC saves, run 12:51–12:55 UTC): Brief A **10/10**, Brief B **3/3** (plain style) on the
+  final code; the platform's judge answered normally for these runs.
