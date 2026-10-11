@@ -774,8 +774,7 @@ def _eval_body(vars, CFG):
     if stance == "plan":
         _transfer(vars, CFG, str(_s(CFG, "situations.plan_request.queue", "") or ""), _s(CFG, "situations.plan_request.outcome")); vars["route"] = "transfer"; return
     if stance == "hardship":
-        offer = str(_s(CFG, "hardship.offer", "connect you with our customer support team") or "")
-        q = offer if offer.strip().endswith("?") else "Would you like me to " + offer.rstrip(".") + "?"
+        q = _offer_question(str(_s(CFG, "hardship.offer", "connect you with our customer support team") or ""))
         _say(vars, _sentence(_s(CFG, "hardship.sympathy", "I am sorry to hear that.")) + " " + q, q)
         vars["hs_stance"] = "none"; vars["route"] = "hardship"; return
     if stance == "dont_want_to_talk":
@@ -916,6 +915,14 @@ def _match_product(vars, text, n):
         words = [w for w in re.split(r"[^a-z0-9]+", name) if len(w) > 3]
         if name and (name in t or any(w in t for w in words)): return k
     return 0
+
+def _offer_question(offer):
+    """The brief's offer ('to connect them with the support team', 'Would you like ...?') as a question to the customer."""
+    o = " ".join(str(offer or "").split()).rstrip(".")
+    if o.endswith("?"): return o
+    o = re.sub(r"^(?:to|offer to|offering to)\s+", "", o, flags=re.I)
+    o = re.sub(r"\bthem\b", "you", o); o = re.sub(r"\btheir\b", "your", o); o = re.sub(r"\bthe customer\b", "you", o)
+    return "Would you like me to " + o + "?"
 
 def _transfer(vars, CFG, queue, outcome_obj):
     vars["transfer_queue"] = str(queue or ""); vars["transfer_flag"] = 1

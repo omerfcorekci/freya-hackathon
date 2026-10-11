@@ -39,3 +39,9 @@ sorry, the 20th"); re-asks that repeat only the question so an offer is never ma
   floor for cards, "next Monday" as the next occurrence, a two-business-day callback window 08:00–18:00 with two retries,
   two "can I help first" asks, other sentences, an "abroad" situation): every value extracted correctly; compiled,
   dry-run and saved on the platform.
+- Brief C live (11 Oct 12:00–12:20 UTC, platform degraded, judge analyses mostly missing): the ten public personas
+  talked to the Brief C agent; the nine calls that completed followed Brief C's rules, not Brief A's: deadline 22 October
+  for a 14-day case (A: 23 October), 26 October accepted as a business day (A moves it to 27 October), a credit-card floor
+  of half the past-due amount (1062.55), Brief C's opening, intro, first question, letter sentence, "two business days"
+  paid sentence, callback within the 08:00–18:00 window, notes on products without a promise. One wording slip
+  ("to to connect them") fixed afterwards.

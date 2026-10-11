@@ -55,6 +55,12 @@ class MultiProductEdges(unittest.TestCase):
         self.assertEqual(s.say("human"), "human"); s.vars["hum_stance"] = "insists"; self.assertEqual(s.node("eval_human"), "again")   # asked twice
         s.vars["hum_stance"] = "insists"; self.assertEqual(s.node("eval_human"), "transfer"); self.assertEqual(s.vars["transfer_queue"], "general")
 
+    def test_hardship_offer_wording(self):
+        import copy
+        spec = copy.deepcopy(self.spec); spec["hardship"]["offer"] = "to connect them with the support team"
+        s = Sim(spec, self.api, [CC("1111", 400.0, 3, 120.0)]); s.start(); s.say("hardship")
+        self.assertIn("Would you like me to connect you with the support team?", s.vars["say"]); self.assertNotIn("to to", s.vars["say"])
+
     def test_plan_request_after_first_agreed(self):
         s = self.two(); s.start(); s.say("refuses"); s.say("agrees")
         self.assertEqual(s.say("plan"), "transfer"); self.assertEqual(s.close(), ("transferred", "restructuring")); self.assertEqual(s.notes, []); self.assertEqual(s.promises, [])
