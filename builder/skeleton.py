@@ -34,7 +34,13 @@ def compile_workflow(spec, api, cfg):
     opening_line = (str(get(spec, "opening.sentence", "")) + " " + str(get(spec, "opening.ask_for_customer", ""))).strip()
     # Judges check literally that 'recorded' is not said before a promise is recorded; say the same thing without the word.
     opening_line = re.sub(r"\b(is|will be|may be|is being|are being|might be)\s+recorded\b", r"\1 kept on record", opening_line, flags=re.I)
-    ack_ext = [ext("ack", prompts.ACK, enum=["customer", "third_party", "wrong_number", "deceased", "question", "refuses", "wants_human", "unclear"], min_confidence=0.4), q_ext]
+    ack_enum = ["customer", "third_party", "wrong_number", "deceased", "question", "refuses", "wants_human", "unclear"]; ack_desc = prompts.ACK
+    customs_all = [c for c in (get(spec, "situations.custom", []) or []) if c.get("name") and c.get("when")]
+    pre_customs = [(i, c) for i, c in enumerate(customs_all) if c.get("applies") in ("anytime", "before_verification", "", None)]
+    if pre_customs:
+        ack_enum = ack_enum + ["custom_" + str(i + 1) for i, c in pre_customs]
+        ack_desc += " " + " ".join(f"'custom_{i + 1}' = {str(c['when']).rstrip('.')}." for i, c in pre_customs)
+    ack_ext = [ext("ack", ack_desc, enum=ack_enum, min_confidence=0.4), q_ext]
     # Transitions never test an extracted variable directly: the engine evaluates them before the turn's extraction lands.
     # Every customer turn goes through a code node, which does see the fresh values and sets `route`.
     ack_routes = [t_always("opening_tally")]
@@ -83,8 +89,14 @@ def compile_workflow(spec, api, cfg):
                                        _route([("error", "farewell"), ("negotiate", "negotiate")], "negotiate"))
 
     # ---- negotiation --------------------------------------------------------------------------------------------
+    customs = [c for c in (get(spec, "situations.custom", []) or []) if c.get("name") and c.get("when")]
+    stance_enum = ["agrees", "proposes", "too_much", "refuses", "vague", "hardship", "paid", "dispute", "plan", "human", "question", "dont_want_to_talk", "other"]
+    stance_desc = prompts.STANCE
+    if customs:
+        stance_enum = stance_enum + ["custom_" + str(i + 1) for i in range(len(customs))]
+        stance_desc += " " + " ".join(f"'custom_{i + 1}' = {str(c['when']).rstrip('.')}." for i, c in enumerate(customs))
     nodes["negotiate"] = _talk("negotiate", spec, "eval",
-                               [ext("stance", prompts.STANCE, enum=["agrees", "proposes", "too_much", "refuses", "vague", "hardship", "paid", "dispute", "plan", "human", "question", "dont_want_to_talk", "other"], min_confidence=0.4)] + prop_ext + [q_ext])
+                               [ext("stance", stance_desc, enum=stance_enum, min_confidence=0.4)] + prop_ext + [q_ext])
     nodes["eval"] = code_node("eval", codegen.code_source("eval", cfg), "negotiate",
                               _route([("confirm", "confirm"), ("hardship", "hardship_offer"), ("human", "human_ask"), ("transfer", "say_transfer"), ("close", "notes_plan")], "negotiate"))
     nodes["hardship_offer"] = _talk("hardship_offer", spec, "eval_hardship",
@@ -112,16 +124,17 @@ def compile_workflow(spec, api, cfg):
     # ---- closing ------------------------------------------------------------------------------------------------
     nodes["notes_plan"] = code_node("notes_plan", codegen.code_source("notes_plan", cfg), "farewell",
                                     _route([("note_1", "note_1"), ("farewell", "farewell")], "farewell"))
+    n_notes = max(3, int(get(spec, "multi_product.max_products", 3) or 3))
     if api.has("add_note"):
-        for i in (1, 2, 3):
+        for i in range(1, n_notes + 1):
             baked = dict(baked_cid, **{roles["note_product"]: "{{note_%d_pid}}" % i, roles["note_reason"]: "{{note_%d_reason}}" % i})
             nt = api_tool(api, "add_note", baked, "Note why this product has no promise.", max_retries=0, post_hook=codegen.header_post_hook(),
                           pre_hook=codegen.drop_empty_pre_hook([roles["note_text"]] if roles.get("note_text") else []))
-            nxt = "note_%d" % (i + 1) if i < 3 else "farewell"
-            trans = [t(nxt, "another note is needed", group(c_neq("note_%d_reason" % (i + 1), "")))] if i < 3 else []
+            nxt = "note_%d" % (i + 1) if i < n_notes else "farewell"
+            trans = [t(nxt, "another note is needed", group(c_neq("note_%d_reason" % (i + 1), "")))] if i < n_notes else []
             nodes["note_%d" % i] = api_node("note_%d" % i, nt, "farewell", trans)
     else:
-        for i in (1, 2, 3): nodes["note_%d" % i] = code_node("note_%d" % i, codegen.code_source("set", cfg, {"set": {"route": "farewell"}}), "farewell")
+        for i in range(1, n_notes + 1): nodes["note_%d" % i] = code_node("note_%d" % i, codegen.code_source("set", cfg, {"set": {"route": "farewell"}}), "farewell")
     if api.has("transfer_to_agent"):
         tt = api_tool(api, "transfer_to_agent", dict(baked_cid, **{roles["queue"]: "{{transfer_queue}}"}), "Hand the call over.", max_retries=0, post_hook=codegen.header_post_hook())
         nodes["transfer"] = api_node("transfer", tt, "close")

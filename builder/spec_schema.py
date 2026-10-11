@@ -203,6 +203,16 @@ SPEC_SCHEMA = _o({
         "unknown_question": _o({"say": _s("")}, "A question the tools cannot answer."),
         "dont_want_to_talk": _o({"times": _i("How many times they must say it."), "after_verified": OUTCOME, "before_verified": OUTCOME}, ""),
         "transfer_after_promise": _s("", ["transferred_with_that_reason", "promise"]),
+        "custom": _a(_o({
+            "name": _s("Short snake_case name, e.g. business_closed, customer_abroad."),
+            "when": _s("What the customer says that triggers it, in one sentence (the extraction model reads this)."),
+            "say": _s("What the agent must say, verbatim if the brief gives the words."),
+            "action": _s("", ["close", "transfer", "continue"]),
+            "outcome": OUTCOME,
+            "transfer_queue": _s("transfer_to_agent queue when action is transfer, else empty."),
+            "note_reason": _s("add_note reason for open products, or empty."),
+            "applies": _s("", ["anytime", "before_verification", "after_verification"]),
+        }), "Situations the brief describes that none of the fields above express (e.g. the business has closed, the customer is abroad, a minor answers). Leave empty when none."),
     }, "Other things customers say."),
     "closing": _o({
         "outcomes": _a(_o({"outcome": _s(""), "reasons": _a(_s(""), "Allowed reasons for this outcome; empty when it takes none.")}), "The outcome table of the brief."),

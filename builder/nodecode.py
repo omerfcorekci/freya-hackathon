@@ -123,8 +123,38 @@ def _goodbye(): return "Thank you for your time. Goodbye."
 def _ask_line(vars, CFG):
     return _fill(_s(CFG, "opening.ask_for_customer", "Am I speaking with [[title]] [[last_name]]?"), vars)
 
+def _custom(CFG, label):
+    """The custom situation behind a 'custom_<i>' stance label, or None."""
+    try:
+        i = int(str(label).split("_")[1]) - 1
+        cs = list(_s(CFG, "situations.custom") or [])
+        return cs[i] if 0 <= i < len(cs) else None
+    except Exception:
+        return None
+
+def _apply_custom(vars, CFG, c):
+    """Say the situation's sentence and close or transfer as the brief says. Returns the route."""
+    n = _n_products(vars)
+    say = _sentence(c.get("say") or "I understand.")
+    act = str(c.get("action") or "close")
+    if act == "transfer":
+        _transfer(vars, CFG, str(c.get("transfer_queue") or ""), c.get("outcome"))
+        vars["say"] = (say + " " + str(_g(vars, "say", ""))).strip(); return "transfer"
+    if act == "continue":
+        _say(vars, say + " " + str(_g(vars, "last_ask", "")), str(_g(vars, "last_ask", ""))); return "negotiate"
+    nr = str(c.get("note_reason") or "")
+    for j in range(1, n + 1):
+        if str(_pget(vars, j, "state")) == "open": _pset(vars, j, "state", nr or "refused")
+    if c.get("outcome"): vars["force_outcome"] = json.dumps(c.get("outcome"))
+    vars["custom_note_reason"] = nr
+    vars["say_prefix"] = say + " "
+    return "close"
+
 def _node_opening_tally(vars, CFG):
     ack = str(_g(vars, "ack", "unclear")); vars["ack"] = "unclear"
+    if ack.startswith("custom_") and _custom(CFG, ack):
+        c = _custom(CFG, ack); _outcome(vars, c.get("outcome"))
+        _say(vars, _sentence(c.get("say") or "I understand.") + " " + _goodbye()); vars["route"] = "close"; return
     qk = str(_g(vars, "q_kind", "none")); vars["q_kind"] = "none"
     ask = _ask_line(vars, CFG)
     route = "again"
@@ -655,6 +685,8 @@ def _eval_body(vars, CFG):
     last_ask = str(_g(vars, "last_ask", _first_ask(CFG)))
     if stance in ("refuses", "other", "none", "vague", "agrees", "question") and (d_status != "none" or amt is not None):
         if stance != "agrees" or d_status == "date" or amt is not None: stance = "proposes"
+    if stance.startswith("custom_") and _custom(CFG, stance):
+        r = _apply_custom(vars, CFG, _custom(CFG, stance)); vars["route"] = r if r != "close" else "close"; return
     if stance == "question" or (stance in ("other", "none") and qk != "none"):
         _say(vars, _std_reply(vars, CFG, qk if qk != "none" else "other") + " " + last_ask, last_ask); vars["route"] = "negotiate"; return
     if stance == "human":
@@ -870,15 +902,20 @@ def _node_notes_plan(vars, CFG):
         elif st in ("open", "agreed"): st = "refused"
         states.append((k, st))
     notes = []
+    allowed = CFG.get("note_reasons") or []
     if notes_on:
         for k, st in states:
             if k in recorded: continue
             r = _note_reason(CFG, st)
+            if not r and st in allowed: r = st
             if r: notes.append((k, r))
     vars["note_1_pid"] = ""; vars["note_1_reason"] = ""; vars["note_2_pid"] = ""; vars["note_2_reason"] = ""; vars["note_3_pid"] = ""; vars["note_3_reason"] = ""
+    vars["note_4_pid"] = ""; vars["note_4_reason"] = ""; vars["note_5_pid"] = ""; vars["note_5_reason"] = ""
     if len(notes) > 0: vars["note_1_pid"] = str(_pget(vars, notes[0][0], "id")); vars["note_1_reason"] = notes[0][1]
     if len(notes) > 1: vars["note_2_pid"] = str(_pget(vars, notes[1][0], "id")); vars["note_2_reason"] = notes[1][1]
     if len(notes) > 2: vars["note_3_pid"] = str(_pget(vars, notes[2][0], "id")); vars["note_3_reason"] = notes[2][1]
+    if len(notes) > 3: vars["note_4_pid"] = str(_pget(vars, notes[3][0], "id")); vars["note_4_reason"] = notes[3][1]
+    if len(notes) > 4: vars["note_5_pid"] = str(_pget(vars, notes[4][0], "id")); vars["note_5_reason"] = notes[4][1]
     forced = str(_g(vars, "force_outcome", ""))
     if transfer: pass
     elif forced:
