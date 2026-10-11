@@ -6,5 +6,5 @@
   "run_command": "python3 builder/build.py {case_folder} {mock_url}",
   "workflow": "submission/final.workflow.json",
   "trace": "traces/final.log",
-  "mock_url": "MOCK_URL"
+  "mock_url": "https://freya-bank-mock-corekci.omerfcorekci.workers.dev"
 }
