@@ -27,7 +27,8 @@ def main(argv):
             p = subprocess.run(cmd, timeout=max(60, limit - (time.time() - t0)), capture_output=True, text=True)
             sys.stdout.write(p.stdout); sys.stderr.write(p.stderr); sys.stdout.flush()
             err = p.stderr or ""
-            transient = any(x in err for x in ("-> 502", "-> 503", "-> 504", "temporarily unavailable", "Remote end closed", "timed out", "URLError")) and "passed" not in p.stdout
+            transient = any(x in err for x in ("-> 502", "-> 503", "-> 504", "temporarily unavailable", "Remote end closed", "timed out", "URLError",
+                                               "JSONDecodeError", "Expecting value", "concurrent simulations")) and "passed" not in p.stdout
             if p.returncode == 0 or not transient or time.time() - t0 > limit - 120: return p.returncode
             print(f"\nplatform error (attempt {attempt}); waiting 60 s and retrying the run", flush=True); time.sleep(60)
             try:
