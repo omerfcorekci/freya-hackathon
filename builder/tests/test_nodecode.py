@@ -155,7 +155,7 @@ class BriefATests(unittest.TestCase):
 
     def test_identity_declines_twice(self):
         s = self.sim([]); s.node("identity_prep"); self.assertEqual(s.vars["id_next_field"], "date_of_birth"); self.assertIn("date of birth", s.vars["say"])
-        s.vars["id_stance"] = "asks_what_about"; self.assertEqual(s.node("identity_eval"), "identity"); self.assertIn("protect", s.vars["say"])
+        s.vars["id_stance"] = "declines"; self.assertEqual(s.node("identity_eval"), "identity"); self.assertIn("protect", s.vars["say"])
         s.vars["id_stance"] = "declines"; self.assertEqual(s.node("identity_eval"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_verified", "declined"))
 
     def test_identity_happy_and_pieces(self):
@@ -202,6 +202,34 @@ class BriefATests(unittest.TestCase):
         self.assertEqual(s.say("custom_1"), "close"); self.assertEqual(s.close(), ("not_reached", "wrong_number"))
         self.assertTrue(s.vars["say"].startswith("Thank you for letting us know."))
         s = Sim(spec, self.api, []); s.vars["ack"] = "custom_1"; self.assertEqual(s.node("opening_tally"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_reached", "wrong_number"))
+
+    def test_in_words_year_digits(self):
+        s = self.sim([]); s.node("identity_prep")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "The twenty-eighth of April one nine nine three."}); self.assertEqual(s.node("identity_eval"), "verify"); self.assertEqual(s.vars["id_answer"], "1993-04-28")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "false", "vi_left": "3"}); s.node("identity_after")
+        s.vars.update({"id_stance": "answering", "id_answer_text": "nine nine zero four"}); self.assertEqual(s.node("identity_eval"), "verify"); self.assertEqual(s.vars["id_answer"], "9904")
+
+    def test_asks_back_during_identity(self):
+        s = self.sim([]); s.node("identity_prep")
+        s.vars["id_stance"] = "asks_what_about"; self.assertEqual(s.node("identity_eval"), "identity"); self.assertIn("security check", s.vars["say"])
+        s.vars.update({"id_stance": "answering", "id_answer_text": "28 April 1993"}); self.assertEqual(s.node("identity_eval"), "verify")
+        s.vars.update({"vi_ok": "true", "vi_verified": "true", "vi_all": "false", "vi_left": "3"}); s.node("identity_after")
+        s.vars["id_stance"] = "asks_what_about"; self.assertEqual(s.node("identity_eval"), "identity"); self.assertIn("protect", s.vars["say"])   # second time: explained once
+        s.vars["id_stance"] = "asks_what_about"; self.assertEqual(s.node("identity_eval"), "close")                                              # third time: declined
+
+    def test_talkative_nonanswer_then_agrees(self):
+        s = self.sim([CC("7740", 365.0, 8, 109.5)]); s.start()
+        self.assertEqual(s.say("other"), "negotiate"); self.assertIn("missed that", s.vars["say"]); self.assertEqual(s.vars["p1_attempts_used"], 0)
+        self.assertEqual(s.say("none"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 0)
+        self.assertEqual(s.say("other"), "negotiate"); self.assertEqual(s.vars["p1_attempts_used"], 1)   # third non-answer uses an attempt
+        self.assertEqual(s.say("agrees"), "confirm"); s.confirm(); self.assertEqual(s.promises, [("p1", 365.0, "2026-10-16")])
+
+    def test_pieces_date_two_parts(self):
+        s = self.sim([CC("6604", 300.0, 4, 90.0)]); s.start()
+        self.assertEqual(s.say("proposes", date="30"), "confirm"); self.assertEqual(s.vars["p1_agreed_date"], "2026-10-30")   # a bare day is a day of the month
+        s = self.sim([CC("6604", 300.0, 4, 90.0)]); s.start()
+        self.assertEqual(s.say("vague", date="October"), "negotiate"); self.assertIn("exact day", s.vars["say"])
+        self.assertEqual(s.say("proposes", date="30"), "confirm"); self.assertEqual(s.vars["p1_agreed_date"], "2026-10-30")
 
     def test_question_then_repeat(self):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()

@@ -231,9 +231,7 @@ def _norm_answer(text, q):
         m = None
         for mm in re.finditer(r"(\d{4}),?\s+([a-z]+)\s+(\d{1,2})\b", low2): m = mm
         if m and m.group(2)[:3] in MONTHS: return "%04d-%02d-%02d" % (int(m.group(1)), MONTHS[m.group(2)[:3]], int(m.group(3))), True
-        m = None
-        for mm in re.finditer(r"([a-z]+)\.?\s+(\d{1,2})\b", low2): m = mm
-        if m and m.group(1)[:3] in MONTHS: return "%04d-%02d-%02d" % (int(m.group(3)), MONTHS[m.group(1)[:3]], int(m.group(2))), True
+
         m = None
         for mm in re.finditer(r"(\d{1,2})[./\s-](\d{1,2})[./\s-](\d{4})", low2): m = mm
         if m:
@@ -303,7 +301,16 @@ def _words_to_digits(s):
         v, c = small(i)
         if v is not None: out.append(str(v)); i += c; continue
         out.append(t); i += 1
-    return " ".join(x for x in out if x != ".")
+    out = [x for x in out if x != "."]
+    # digits said one by one: 'one nine nine three' -> 1993, 'four four seven one' -> 4471 (runs of 3 or more single digits)
+    joined = []; run = []
+    for x in out + [None]:
+        if x is not None and re.fullmatch(r"\d", x): run.append(x); continue
+        if len(run) >= 3: joined.append("".join(run))
+        else: joined.extend(run)
+        run = []
+        if x is not None: joined.append(x)
+    return " ".join(joined)
 
 def _digit_words(s):
     return _words_to_digits(s)
@@ -319,6 +326,9 @@ def _identity_eval_body(vars, CFG):
     if st == "wants_human":
         vars["resume_to"] = "identity"; vars["resume_ask"] = ask
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
+    if st == "asks_what_about" and not _gi(vars, "id_asked_about", 0):
+        vars["id_asked_about"] = 1
+        _say(vars, _std_reply(vars, CFG, "what_about") + " " + ask, ask); vars["route"] = "identity"; return
     if st in ("declines", "asks_what_about", "dont_want_to_talk"):
         n = _gi(vars, "id_refusals", 0) + 1; vars["id_refusals"] = n
         limit = int(_s(CFG, "identity.declined.max_refusals", 2) or 2)
@@ -679,7 +689,20 @@ def _eval_body(vars, CFG):
         atext = ("%d" % int(_parse_amount(prev_amt))) + "." + ("%02d" % int(_parse_amount(atext))); vars["last_amount_text"] = atext
     vars["stance"] = "none"; vars["prop_date_text"] = ""; vars["prop_amount_text"] = ""; vars["prop_product_text"] = ""; vars["q_kind"] = "none"
     _pset(vars, k, "turns", _gi(vars, _pk(k, "turns"), 0) + 1)
+    # a bare day number is a day of the month when it comes as a payment date ('on 30' -> 'the 30th')
+    if re.fullmatch(r"\s*(?:the\s+)?([0-9]{1,2})(?:st|nd|rd|th)?\.?\s*", dtext or ""):
+        dtext = "the " + re.sub(r"\D", "", dtext) + "th"
     d_status, d_val = _resolve_date_expr(dtext, now, cal) if dtext else ("none", "")
+    # 'pieces': a date said in two parts ('30' then 'October'); keep the unresolved piece and retry with the next one
+    prev_piece = str(_g(vars, "date_piece", ""))
+    if dtext and d_status != "date" and prev_piece:
+        combo = prev_piece + " " + dtext
+        st2, val2 = _resolve_date_expr(combo, now, cal)
+        if st2 == "date": d_status, d_val, dtext = st2, val2, combo
+        else:
+            combo = dtext + " " + prev_piece; st2, val2 = _resolve_date_expr(combo, now, cal)
+            if st2 == "date": d_status, d_val, dtext = st2, val2, combo
+    vars["date_piece"] = dtext if (dtext and d_status != "date") else ""
     amt = _parse_amount(atext) if atext else None
     phase = str(_g(vars, "neg_phase", "product"))
     last_ask = str(_g(vars, "last_ask", _first_ask(CFG)))
@@ -689,6 +712,14 @@ def _eval_body(vars, CFG):
         r = _apply_custom(vars, CFG, _custom(CFG, stance)); vars["route"] = r if r != "close" else "close"; return
     if stance == "question" or (stance in ("other", "none") and qk != "none"):
         _say(vars, _std_reply(vars, CFG, qk if qk != "none" else "other") + " " + last_ask, last_ask); vars["route"] = "negotiate"; return
+    # a turn with nothing about the payment in it (small talk, a cut-off sentence): ask again twice before it counts as a non-answer
+    if stance in ("other", "none") and d_status == "none" and amt is None and not ptext:
+        na = _gi(vars, "nonanswer_count", 0) + 1; vars["nonanswer_count"] = na
+        if na <= 2:
+            _say(vars, "Sorry, I missed that. " + last_ask, last_ask); vars["route"] = "negotiate"; return
+        vars["nonanswer_count"] = 0
+    else:
+        vars["nonanswer_count"] = 0
     if stance == "human":
         vars["resume_to"] = "negotiate"; vars["resume_ask"] = last_ask
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
