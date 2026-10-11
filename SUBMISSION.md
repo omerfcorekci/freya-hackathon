@@ -66,6 +66,7 @@ The run writes `submission/final.workflow.json`, `traces/final.log` (our trace) 
 (every message of the Claude Code run that designed the agent). `submission.json` at the repo root names the commit,
 the run command, the two files and the mock address. The three files go by e-mail to the organisers before 20:00 UTC.
 The mock stays deployed until the results are out.
+Earlier runs on the final case are kept as `traces/final-run1.log` and `traces/final-run2.log`; the submitted run is the one in `traces/final.log`.
 
 ## Sunday checklist (UTC)
 

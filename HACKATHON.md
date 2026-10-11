@@ -415,3 +415,25 @@ the hackathon and what we already do about it:
   opening phrase. No brief so far has such a rule, but the agent used to repeat leads such as "I understand." and
   "Thank you." turn after turn. Since 14:08 UTC the node runner varies a repeated lead with a synonym on each later use
   (commit `4abbb4b`); sentences the brief dictates and the questions themselves are never changed.
+
+## 17. The final case (Sunday 17:00–20:00 UTC)
+
+The final was not a brief with a tool API but a case folder: a bank's documents written months apart (analysis
+documents in two versions, mails, a meeting transcript, the IVR prompt sheet, a FAQ page, a service contract), a
+test-customer file with the exact answer of every service, six example scenarios, and the duty to run our own mock of
+the bank's services on Cloudflare Workers. The agent answers "how much is my statement debt" in Turkish.
+
+What we built in the three hours (all in this repo):
+
+- `mock/`: the Worker. Routes and answers are generated from the pack's test-customer file (`build_data.py`), the
+  contract's envelope and error codes are followed, the one delayed answer is delayed, `check.py` proves the deployed
+  Worker against all 617 answers of the pack.
+- Case mode of the builder (`builder/case.py`, `builder/casetext.py`, `.claude/skills/build-case-agent/SKILL.md`):
+  every file of the folder is rendered to text, a Claude Code run designs the workflow and scripted tests from the
+  folder alone, and the same deterministic harness as in the practice lints, dry-runs, saves in place, exports and
+  replays the tests over the chat route. Two traces per run: `traces/final.log` and `traces/final.session.jsonl`.
+- Three runs. Run 1 found two platform facts the skill now states: a code node's reset of an extracted variable to
+  `""` is rejected (the old value stays), and every HTTP error reaches the workflow as the same `function_call_error`
+  (a 404 "no card" and a 500 look alike). Run 2 proved the fixes but had started from run 1's files, so run 3 is the
+  submitted one: an empty output folder, the case folder alone. Earlier traces are kept as `traces/final-run1.log`
+  and `traces/final-run2.log`.
