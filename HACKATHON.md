@@ -360,7 +360,7 @@ Principles:
 | The 200-workflow workspace limit | Update in place with `save_workflow(slot)`; fixed slot names |
 | Key leak | `env.sh` is gitignored; grep traces before committing |
 
-## 14. Status (Sunday 12:55 UTC, 15:55 TR)
+## 14. Status (Sunday 13:30 UTC, 16:30 TR)
 
 Done:
 - Builder end to end: `python3 builder/build.py <brief> <api>` extracts the spec (1 Opus call, ~$0.25–0.45, ~50–65 s),
@@ -370,7 +370,13 @@ Done:
   all speaking styles pass except that `talkative` fluctuates (the platform cuts the customer's sentences).
 - Generalisation: spec extraction is stable across three runs on the raw-material rehearsal brief; Brief C (the kit's
   API, 30 different rules) was extracted correctly and the compiled agent followed Brief C's rules in 9/9 live calls.
-- Unit tests: 86 (`python3 -m unittest discover builder/tests`).
+- Unit tests: 100 (`python3 -m unittest discover builder/tests`).
+- Robustness to briefs unlike A/B (13:00–13:25 UTC, after the freeze candidate): a spec with only the required keys
+  compiles, lints and runs a call (`builder/tests/test_sparse_spec.py`); attempts default to the asked amount then the
+  floor by the deadline when the brief lists none; hardship without rules gets one sentence of sympathy and the normal
+  persuasion; third parties switched off close politely; a callback today only on a business day, a wrong-answer limit
+  per security question and attempts that propose a share of the past-due amount are available when a brief states them.
+  Brief A and B compile exactly as before.
 
 Platform on Sunday morning: 502/503/504 for long stretches, judge analyses missing ("inconclusive"/"error"), simulations
 left hanging. Everything that talks to the platform now retries with back-off, cancels hung simulations and never blocks
