@@ -56,3 +56,10 @@ sorry, the 20th"); re-asks that repeat only the question so an offer is never ma
   and no code node ran in the stalled calls). Each of PUB-11, PUB-12 and PUB-13 passed on the new code with the expected
   tool path once its first turn went through. A fourth run at 13:38–13:42 UTC, once the platform had recovered (median
   slowest turn 3 s): Brief B **3/3** in one simulation. Plain-style result on the frozen code: A 10/10, B 3/3.
+- Varied openers (saves 14:09 UTC; run 14:10–14:20 UTC): A 7/10, B 3/3. All three A failures were the platform's code
+  sandbox: PUB-07 shows `function_call_error: Failed to reach snekbox: Connection reset by peer`; in PUB-01 the
+  `identity_prep` code node reported success but wrote no variable (the agent then spoke the literal `{{say}}` and
+  `verify_identity` was called without a field until the call hit its maximum duration); in PUB-09 the judge passed the
+  call but the `close` node's API call never started after the transfer. The same code runs in the local sandbox in
+  milliseconds. The variation itself had not reached the platform yet (it hung on the test runner, not on the shipped
+  code string); fixed in `cf17cf3`, saved 14:24 UTC and run again below.
