@@ -28,3 +28,14 @@ What the style runs taught the builder (all fixed in code, not in prompts): date
 digit; a question asked back during the security check; small talk that the platform cuts mid-sentence (treated as a
 non-answer to ask again, not as a refusal); a day said alone ("30") or in two parts; a self-correction ("the 21st,
 sorry, the 20th"); re-asks that repeat only the question so an offer is never made twice.
+
+## Generalisation checks (Sunday morning)
+
+- Spec extraction run three times on the raw-material rehearsal brief (mail + policy + memo + code list): holidays, bands,
+  persuasion attempts, identity questions, callback window, floor rule, outcome table, hardship/plan/human/paid rules and
+  the mandatory sentences were identical in all three; only the name of the custom situation varied.
+- Brief C (`builder/rehearsal/brief-c.md`: Harbor Trust Bank, the kit's tool API, 48 rules, 30 values that differ from
+  Brief A: three bands including a calendar-day deadline, weekend dates moved to the previous business day, a fraction
+  floor for cards, "next Monday" as the next occurrence, a two-business-day callback window 08:00–18:00 with two retries,
+  two "can I help first" asks, other sentences, an "abroad" situation): every value extracted correctly; compiled,
+  dry-run and saved on the platform.
