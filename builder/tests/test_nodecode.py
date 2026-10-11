@@ -193,6 +193,16 @@ class BriefATests(unittest.TestCase):
         self.assertEqual(s.say("proposes", amount="six hundred thirty-seven"), "negotiate")      # 637 accepted as amount, asks for the day
         self.assertEqual(s.say("proposes", amount="fifty", date="tomorrow"), "confirm"); self.assertIn("637.50", s.vars["readback_text"])
 
+    def test_custom_situation_closes(self):
+        import copy
+        spec = copy.deepcopy(self.spec)
+        spec["situations"]["custom"] = [{"name": "business_closed", "when": "says the business has closed", "say": "Thank you for letting us know.", "action": "close",
+                                         "outcome": {"outcome": "not_reached", "reason": "wrong_number"}, "transfer_queue": "", "note_reason": "", "applies": "anytime"}]
+        s = Sim(spec, self.api, [CC("1111", 500.0, 3, 150.0)]); s.start()
+        self.assertEqual(s.say("custom_1"), "close"); self.assertEqual(s.close(), ("not_reached", "wrong_number"))
+        self.assertTrue(s.vars["say"].startswith("Thank you for letting us know."))
+        s = Sim(spec, self.api, []); s.vars["ack"] = "custom_1"; self.assertEqual(s.node("opening_tally"), "close"); self.assertEqual((s.vars["outcome"], s.vars["reason"]), ("not_reached", "wrong_number"))
+
     def test_question_then_repeat(self):
         s = self.sim([CC("1111", 500.0, 3, 150.0)]); s.start()
         s.vars["q_kind"] = "robot"; self.assertEqual(s.say("question"), "negotiate"); self.assertIn("digital assistant", s.vars["say"]); self.assertIn("today?", s.vars["say"])
