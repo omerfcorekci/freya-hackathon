@@ -155,6 +155,9 @@ def run(folder, mock_url, slot="final", budget_seconds=1700, model=DEFAULT_MODEL
             tr.warn(f"platform export failed ({str(e)[:120]}); writing the saved workflow locally")
             json.dump({"workflow_id": saved["workflow_id"], "agent_id": saved["agent_id"], "note": "exported locally: the platform did not answer", "workflow": wf}, open(export_path, "w"), ensure_ascii=False, indent=1)
         tr.export(os.path.relpath(export_path, ROOT), n_nodes, n_tools)
+        for extra in ("notes.md", "tests.json"):         # the design step's notes and tests travel with the trace for the reviewer
+            src = os.path.join(out_dir, extra)
+            if os.path.exists(src): shutil.copy(src, os.path.join(ROOT, "traces", f"{slot}.{extra}"))
         tests_path = os.path.join(out_dir, "tests.json")
         if not no_chat and os.path.exists(tests_path):
             try: tests = json.load(open(tests_path, encoding="utf-8"))

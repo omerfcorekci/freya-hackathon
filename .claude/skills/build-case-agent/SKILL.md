@@ -85,6 +85,9 @@ Rules that cost us runs on the practice round, all mandatory:
   envelope): do not rename fields and do not rely on a hook to reshape the body; put the contract's envelope in the
   body defaults themselves. If the test environment delays an answer, set the action's `config.timeoutMs` above the
   longest delay listed (and a short `connect_retries`); calls with side effects get `maxRetries` 0.
+- A tool that can be slow (the case names a delay, or a sentence to say while a service answers): give that
+  `api_request` node an `on_enter` of type `tts` with the case's waiting sentence, so the caller hears it before the
+  wait; silent `on_enter` only for fast tools.
 - Code nodes: only `json`, `re`, `datetime`; never `{{` or `}}` inside code; never raise (wrap in try/except and set a
   fallback route); booleans and numbers arrive as strings, convert with care; read variables with `vars.get`.
 - Every path reaches an `end_call` node. The farewell is spoken by the previous conversation node; the `end_call` node
