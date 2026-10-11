@@ -29,6 +29,10 @@ except Exception as _e:
     vars['node_error'] = (str(MODE) + ': ' + str(_e))[:300]
     if not vars.get('route'):
         vars['route'] = 'farewell'
+try:
+    _vary_opener(vars, CFG)
+except Exception:
+    pass
 """
 
 
@@ -61,7 +65,7 @@ def _closure(roots):
     return seen
 
 def _shaken_source(mode):
-    keep = _closure(["_node_" + mode])
+    keep = _closure(["_node_" + mode, "_vary_opener"])
     body = [n for n in _OTHERS]                       # imports, constants, small classes: always kept
     body += [_DEFS[name] for name in _DEFS if name in keep]
     mod = ast.Module(body=body, type_ignores=[])

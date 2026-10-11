@@ -1136,7 +1136,7 @@ def _run_node(mode, vars, CFG):
     if f is None:
         vars["route"] = "farewell"; return
     f(vars, CFG)
-    try: _vary_opener(vars, CFG)
+    try: _vary_opener(vars, CFG)        # the platform runner calls this too, after the node function (codegen.RUNNER)
     except Exception: pass
 
 

@@ -228,6 +228,17 @@ class OpenerVariety(unittest.TestCase):
         s.vars["hs_stance"] = "none"; s.node("eval_hardship"); s.vars["stance"] = "hardship"; s.node("eval")
         self.assertTrue(s.vars["say"].startswith(sympathy), s.vars["say"])
 
+    def test_generated_code_varies_openers_on_the_platform(self):
+        """The platform runs the shipped code string, not _run_node: the variation must be inside that string."""
+        from builder import codegen, datefacts
+        from builder.cfg import build_cfg
+        cfg = build_cfg(self.spec, self.api); src = codegen.code_source("identity_after", cfg)
+        self.assertIn("_vary_opener", src)
+        v = {"customer_id": "c", "now": "2026-10-14T11:00", "id_next_field": "date_of_birth", "vi_ok": "true", "vi_verified": "true", "vi_all": "false", "vi_left": "3", "vi_hint": "",
+             "opener_hist": json.dumps({"1": 1})}         # "Thank you" was used once already in this call
+        datefacts.sandbox_exec(src, v)
+        self.assertTrue(v["say"].startswith("Thanks. And could you"), v["say"]); self.assertIsNone(v.get("node_error"))
+
     def test_second_product_head_varies(self):
         two = [CC("1111", 400.0, 3, 120.0), LOAN("p2", "personal_loan", 900.0, 20, 300.0), LOAN("p3", "car_loan", 500.0, 10, 100.0)]
         s = Sim(self.spec, self.api, two); s.start(); s.say("refuses")
