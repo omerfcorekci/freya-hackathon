@@ -82,14 +82,33 @@ def main(argv=None):
             tr.info("offline mode: stopping before the platform")
         else:
             import freya
-            # 3. dry run, save, export
-            t0 = time.time(); freya.validate_workflow(a.slot, wf); tr.freya(f"dryrun ok {time.time() - t0:.1f}s")
-            t0 = time.time(); saved = freya.save_workflow(a.slot, wf); tr.created(a.slot, saved["workflow_id"], saved["agent_id"], saved.get("version", 1), n_nodes, n_tools)
-            state.update(saved); json.dump(state, open(os.path.join(out_dir, "state.json"), "w"), indent=1)
+            # 3. dry run, save, export. The platform can be down (504s seen on 11 October); retry, and never leave
+            # without an export: the compiled workflow is what the organisers load into their own workspace.
             export_path = os.path.join(ROOT, "submission", a.slot + ".workflow.json")
-            freya.export_workflow(saved["workflow_id"], export_path)
+            saved = None; last_err = None
+            for attempt in range(1, 7):
+                try:
+                    t0 = time.time(); freya.validate_workflow(a.slot, wf); tr.freya(f"dryrun ok {time.time() - t0:.1f}s")
+                    saved = freya.save_workflow(a.slot, wf); tr.created(a.slot, saved["workflow_id"], saved["agent_id"], saved.get("version", 1), n_nodes, n_tools)
+                    break
+                except Exception as e:
+                    last_err = str(e)[:300]; tr.warn(f"platform attempt {attempt} failed: {last_err}")
+                    if attempt < 6 and budget.allows(60 * attempt + 120, "platform retry"): time.sleep(min(90, 15 * attempt))
+                    else: break
+            if saved:
+                state.update(saved); json.dump(state, open(os.path.join(out_dir, "state.json"), "w"), indent=1)
+                try:
+                    freya.export_workflow(saved["workflow_id"], export_path)
+                except Exception as e:
+                    tr.warn(f"export from the platform failed ({str(e)[:120]}); writing the compiled workflow instead")
+                    json.dump({"workflow_id": saved["workflow_id"], "agent_id": saved["agent_id"], "workflow": wf}, open(export_path, "w"), indent=1)
+            else:
+                tr.error(f"platform unavailable after retries: {last_err}")
+                json.dump({"workflow_id": "", "agent_id": "", "note": "saved locally: the platform did not accept a save during the run", "workflow": wf}, open(export_path, "w"), indent=1)
+                tr.warn("wrote the compiled workflow to submission/ without a platform save; rerun the same command when the platform is back")
             exported = json.load(open(export_path)); en, et = skeleton.counts(exported.get("workflow") or {})
             tr.export(os.path.relpath(export_path, ROOT), en, et)
+            if not saved: raise RuntimeError("platform unavailable; compiled workflow exported locally, no save")
             # 4. self-tests
             from builder.selftest import offline as st_offline, chat as st_chat, cases as st_cases
             st_offline.run(spec, cfg, tr)
