@@ -44,6 +44,17 @@ class MultiProductEdges(unittest.TestCase):
         self.assertEqual(s.say("human"), "human"); s.vars["hum_stance"] = "insists"; self.assertEqual(s.node("eval_human"), "transfer")
         self.assertEqual(s.vars["transfer_queue"], "general"); self.assertEqual(s.close(), ("transferred", "human")); self.assertEqual(s.notes, [])
 
+    def test_fraction_floor_per_type_and_two_human_asks(self):
+        import copy
+        spec = copy.deepcopy(self.spec)
+        spec["amount_rules"]["floor_by_type"] = {"credit_card": "0.5", "personal_loan": "instalment_amount", "car_loan": "instalment_amount"}
+        spec["situations"]["human_request"]["ask_can_i_help_first"] = 2
+        s = Sim(spec, self.api, [CC("1111", 2125.1, 3, 120.0)]); s.start()
+        self.assertEqual(s.vars["p1_floor"], 1062.55)
+        self.assertEqual(s.say("too_much"), "negotiate"); self.assertIn("1062.55", s.vars["say"])
+        self.assertEqual(s.say("human"), "human"); s.vars["hum_stance"] = "insists"; self.assertEqual(s.node("eval_human"), "again")   # asked twice
+        s.vars["hum_stance"] = "insists"; self.assertEqual(s.node("eval_human"), "transfer"); self.assertEqual(s.vars["transfer_queue"], "general")
+
     def test_plan_request_after_first_agreed(self):
         s = self.two(); s.start(); s.say("refuses"); s.say("agrees")
         self.assertEqual(s.say("plan"), "transfer"); self.assertEqual(s.close(), ("transferred", "restructuring")); self.assertEqual(s.notes, []); self.assertEqual(s.promises, [])

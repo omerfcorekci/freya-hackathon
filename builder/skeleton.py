@@ -106,7 +106,7 @@ def compile_workflow(spec, api, cfg):
                                        _route([("transfer", "say_transfer"), ("eval", "eval"), ("confirm", "confirm"), ("negotiate", "negotiate"), ("close", "notes_plan")], "hardship_offer"))
     nodes["human_ask"] = _talk("human_ask", spec, "eval_human", [ext("hum_stance", prompts.HUM_STANCE, enum=["insists", "continues", "other"], min_confidence=0.4), q_ext])
     nodes["eval_human"] = code_node("eval_human", codegen.code_source("eval_human", cfg), "negotiate",
-                                    _route([("transfer", "say_transfer"), ("identity", "identity"), ("opening", "opening_again"), ("negotiate", "negotiate")], "negotiate"))
+                                    _route([("transfer", "say_transfer"), ("again", "human_ask"), ("identity", "identity"), ("opening", "opening_again"), ("negotiate", "negotiate")], "negotiate"))
 
     # ---- confirmation and recording ------------------------------------------------------------------------------
     nodes["confirm"] = _talk("confirm", spec, "eval_confirm",

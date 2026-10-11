@@ -180,7 +180,7 @@ def _node_opening_tally(vars, CFG):
         vars["cut_turns"] = _gi(vars, "cut_turns", 0) + 1
         _say(vars, "Sorry, you were cut off. " + ask, ask); vars["route"] = "again"; return
     if ack == "wants_human":
-        vars["resume_to"] = "opening"; vars["resume_ask"] = ask
+        vars["resume_to"] = "opening"; vars["resume_ask"] = ask; vars["human_asks"] = 1
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
     if ack == "wrong_number":
         _outcome(vars, _s(CFG, "third_party.wrong_number.outcome") or _s(CFG, "opening.unclear"))
@@ -341,7 +341,7 @@ def _identity_eval_body(vars, CFG):
     field = str(_g(vars, "id_next_field", "")); q = _question(CFG, field)
     ask = "Could you please tell me " + _ask_for(q) + "?"
     if st == "wants_human":
-        vars["resume_to"] = "identity"; vars["resume_ask"] = ask
+        vars["resume_to"] = "identity"; vars["resume_ask"] = ask; vars["human_asks"] = 1
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
     cut = _cut(vars)
     if cut and not text and st in ("declines", "dont_want_to_talk", "other", "answering", "question"):
@@ -500,6 +500,26 @@ def _pname(p, CFG):
     for key, val in p.items(): out = out.replace("{" + str(key) + "}", str(val))
     return re.sub(r"\{[A-Za-z_][\w]*\}", "", out).strip()
 
+def _floor_for_product(p, full, floor_cfg, roles):
+    """The floor from the spec: a product field, or a fraction of the past-due amount for that product type (rounded up to the cent)."""
+    by_type = floor_cfg.get("floor_by_type") or dict()
+    t = str(p.get(roles.get("type", "type"), ""))
+    rule = by_type.get(t)
+    if rule is not None and str(rule).strip() != "":
+        txt = str(rule).strip().lower().replace("%", "")
+        frac = None
+        if txt in ("half", "a half", "one half"): frac = 0.5
+        elif txt in ("a third", "one third"): frac = 1.0 / 3
+        elif txt in ("a quarter", "one quarter"): frac = 0.25
+        else:
+            try: frac = float(txt)
+            except Exception: frac = None
+        if frac is not None:
+            if frac > 1: frac = frac / 100.0
+            cents = int(full * frac * 100 + 0.999999)
+            return cents / 100.0
+    return _product_floor(p, floor_cfg)
+
 def _first_ask(CFG): return _sentence(_s(CFG, "persuasion.first_ask", "Can you make this payment today?"))
 
 def _node_product_facts(vars, CFG):
@@ -524,7 +544,7 @@ def _node_product_facts(vars, CFG):
         late = int(float(p.get(roles.get("days_late", "days_late"), 0) or 0))
         band = _band_for(late, bands, cal) or dict()
         deadline = _deadline_for(today, band, cal) if band else None
-        floor = _product_floor(p, floor_cfg)
+        floor = _floor_for_product(p, full, floor_cfg, roles)
         if floor is None or floor <= 0 or floor > full: floor = full
         name = _pname(p, CFG)
         _pset(vars, k, "id", pid); _pset(vars, k, "name", name); _pset(vars, k, "full", full); _pset(vars, k, "floor", floor)
@@ -749,7 +769,7 @@ def _eval_body(vars, CFG):
     else:
         vars["nonanswer_count"] = 0
     if stance == "human":
-        vars["resume_to"] = "negotiate"; vars["resume_ask"] = last_ask
+        vars["resume_to"] = "negotiate"; vars["resume_ask"] = last_ask; vars["human_asks"] = 1
         _say(vars, "Is there anything I can help you with first?"); vars["route"] = "human"; return
     if stance == "plan":
         _transfer(vars, CFG, str(_s(CFG, "situations.plan_request.queue", "") or ""), _s(CFG, "situations.plan_request.outcome")); vars["route"] = "transfer"; return
@@ -927,6 +947,11 @@ def _eval_hardship_body(vars, CFG):
 def _node_eval_human(vars, CFG):
     st = str(_g(vars, "hum_stance", "other")); vars["hum_stance"] = "other"
     if st == "insists":
+        asks = _gi(vars, "human_asks", 1)
+        limit = int(_s(CFG, "situations.human_request.ask_can_i_help_first", 1) or 1)
+        if asks < limit:
+            vars["human_asks"] = asks + 1
+            _say(vars, "I understand. Is there anything I can help you with first?"); vars["route"] = "again"; return
         _transfer(vars, CFG, str(_s(CFG, "situations.human_request.queue", "") or ""), _s(CFG, "situations.human_request.outcome")); vars["route"] = "transfer"; return
     back = str(_g(vars, "resume_to", "negotiate")); ask = str(_g(vars, "resume_ask", "") or _g(vars, "last_ask", ""))
     _say(vars, "Thank you. " + ask, ask)

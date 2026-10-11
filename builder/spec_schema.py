@@ -128,7 +128,8 @@ SPEC_SCHEMA = _o({
         "never_ask_how_much": _b("The agent proposes every amount and never asks how much the customer can pay."),
         "floor_kind": _s("", ["by_product_type", "fraction_of_full", "fixed", "none", "custom"]),
         "floor_by_type": {"type": "object", "additionalProperties": {"type": "string"},
-                          "description": "Map from product type to the product field that holds the minimum amount, e.g. credit_card -> minimum_payment."},
+                          "description": "Map from product type to the floor for that type: the product field that holds the minimum amount (e.g. credit_card -> minimum_payment, "
+                                         "personal_loan -> instalment_amount), or a fraction of the past-due amount written as a number (e.g. credit_card -> 0.5 for half)."},
         "floor_fraction": _n("For fraction_of_full, the fraction (0.5 = half)."),
         "floor_fixed": _n("For fixed, the amount."),
         "too_much_offer_floor_once": _b(""),
